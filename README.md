@@ -40,12 +40,12 @@ The system is designed using **UML Use Case and Class Diagrams** before implemen
 
 ## 👥 Team
 
-| # | Role |
-|---|------|
-| 1 | Developer |
-| 2 | Developer |
-| 3 | Developer |
-| 4 | Developer |
+| # | Role                 |
+|---|----------------------|
+| 1 | Zrazhevskiy Denis    |
+| 2 | Gatiyatullin Ibragim |
+| 3 | Yessentay Adil       |
+| 4 | Kuanysh Zhanibek     |
 
 > Team size: **4 developers**  
 > Each member is responsible for a dedicated module of the system.
@@ -77,13 +77,6 @@ src/
 
 ---
 
-## 📋 Requirements
-
-- Java 17+
-- No external dependencies — pure Java
-
----
-
 ## 📁 Submission
 
 The final submission includes:
@@ -93,13 +86,3 @@ The final submission includes:
 - 🖥️ **Presentation** (`.pdf`) — 3–4 slides: what works / what doesn't
 
 ---
-
-## 📌 Course Info
-
-| Field | Info |
-|---|---|
-| Course | Object-Oriented Programming & Design |
-| Instructor | Izbassar Assylzhan |
-| Referenced from | Pakizar Shamoi |
-| Deadline | Week 14–15 (practice time) |
-| Total points | 30 pts (10 in 2nd attestation + 20 at final exam) |
