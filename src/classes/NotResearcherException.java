@@ -1,4 +1,4 @@
-package research;
+package classes;
 
 public class NotResearcherException extends Exception {
     public NotResearcherException(String message) {

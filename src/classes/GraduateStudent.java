@@ -1,8 +1,7 @@
-package users;
+package classes;
 
 import enums.DegreeType;
 import enums.School;
-import research.*;
 import java.util.*;
 
 public class GraduateStudent extends Student implements Researcher {

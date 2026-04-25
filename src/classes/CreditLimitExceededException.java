@@ -1,4 +1,4 @@
-package exceptions;
+package classes;
 
 public class CreditLimitExceededException extends Exception {
     public CreditLimitExceededException(String message) {

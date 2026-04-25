@@ -1,4 +1,4 @@
-package research;
+package classes;
 
 import enums.CitationFormat;
 import java.io.Serializable;

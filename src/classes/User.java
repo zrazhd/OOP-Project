@@ -1,4 +1,4 @@
-package users;
+package classes;
 
 import enums.Language;
 import java.io.Serializable;

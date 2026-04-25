@@ -1,7 +1,6 @@
-package academics;
+package classes;
 
 import enums.LessonType;
-import users.Teacher;
 import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.LocalTime;

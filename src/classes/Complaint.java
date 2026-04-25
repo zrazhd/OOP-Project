@@ -1,4 +1,4 @@
-package users;
+package classes;
 
 import enums.UrgencyLevel;
 import java.io.Serializable;

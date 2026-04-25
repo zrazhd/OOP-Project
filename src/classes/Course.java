@@ -1,9 +1,7 @@
-package academics;
+package classes;
 
 import enums.CourseType;
 import enums.School;
-import users.Student;
-import users.Teacher;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

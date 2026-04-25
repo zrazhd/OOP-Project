@@ -1,11 +1,8 @@
-package users;
+package classes;
 
-import academics.Course;
-import academics.Mark;
 import enums.TeacherPosition;
 import enums.UrgencyLevel;
 import enums.School;
-import research.*;
 import java.util.*;
 
 public class Teacher extends Employee implements Comparable<Teacher> {

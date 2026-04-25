@@ -1,4 +1,4 @@
-package exceptions;
+package classes;
 
 public class TooManyFailsException extends Exception {
     public TooManyFailsException(String message) {

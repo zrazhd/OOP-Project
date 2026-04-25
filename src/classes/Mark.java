@@ -1,4 +1,4 @@
-package academics;
+package classes;
 
 import enums.GradeLetter;
 import java.io.Serializable;

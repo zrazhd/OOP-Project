@@ -1,4 +1,4 @@
-package research;
+package classes;
 
 import java.util.Comparator;
 import java.util.List;

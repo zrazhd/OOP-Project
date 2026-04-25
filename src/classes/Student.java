@@ -1,12 +1,7 @@
-package users;
+package classes;
 
-import academics.Course;
-import academics.Mark;
 import enums.DegreeType;
-import enums.GradeLetter;
 import enums.School;
-import exceptions.CreditLimitExceededException;
-import exceptions.TooManyFailsException;
 import java.util.*;
 
 public class Student extends User implements Comparable<Student> {
