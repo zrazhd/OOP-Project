@@ -3,7 +3,6 @@ package users;
 import academics.Course;
 import academics.Mark;
 import enums.DegreeType;
-import enums.GradeLetter;
 import enums.School;
 import exceptions.CreditLimitExceededException;
 import exceptions.TooManyFailsException;
