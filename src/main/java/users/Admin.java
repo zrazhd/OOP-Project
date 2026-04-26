@@ -1,11 +1,10 @@
 package users;
 
 import system.LogEntry;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
 
-public class Admin extends Employee implements Serializable {
+public class Admin extends Employee {
 
     private List<LogEntry> systemLogs;
 

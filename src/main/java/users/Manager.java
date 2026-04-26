@@ -7,11 +7,10 @@ import enums.NewsType;
 import enums.School;
 import system.News;
 import system.TechRequest;
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Manager extends Employee implements Serializable {
+public class Manager extends Employee {
 
     private ManagerType managerType;
     private List<Course> managedCourses;
