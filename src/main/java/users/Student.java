@@ -9,7 +9,6 @@ import exceptions.TooManyFailsException;
 import java.util.*;
 
 public class Student extends User implements Comparable<Student> {
-    private static final long serialVersionUID = 1L;
 
     private static final int MAX_CREDITS = 21;
     private static final int MAX_FAILS = 3;

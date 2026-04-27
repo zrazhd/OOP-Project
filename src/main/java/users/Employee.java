@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Employee extends User {
-    private static final long serialVersionUID = 1L;
 
     private double salary;
     private String department;

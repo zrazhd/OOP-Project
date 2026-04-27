@@ -6,7 +6,6 @@ import java.util.*;
 
 
 public class TechSupportSpecialist extends Employee {
-    private static final long serialVersionUID = 1L;
 
     private List<TechRequest> assignedRequests;
     private List<TechRequest> completedRequests;

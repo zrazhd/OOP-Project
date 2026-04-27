@@ -4,17 +4,8 @@ import users.Employee;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * OfficialMessage represents a signed, official internal communication
- * between employees — for example, booking a room for an exam,
- * or notifying about a scheduled event.
- *
- * Unlike a regular Message (which is informal), OfficialMessage
- * includes a subject, requires a signature, and is addressed to
- * a department or specific recipient.
- */
+
 public class OfficialMessage implements Serializable {
-    private static final long serialVersionUID = 1L;
 
     private static int counter = 1;
 

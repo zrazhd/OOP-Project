@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
  * Comment attached to a News article.
  */
 public class Comment implements Serializable {
-    private static final long serialVersionUID = 1L;
 
     private User author;
     private String text;

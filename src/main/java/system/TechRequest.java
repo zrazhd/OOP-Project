@@ -6,13 +6,8 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/**
- * TechRequest represents a technical support request submitted by an Employee.
- * Lifecycle: NEW → VIEWED → ACCEPTED/REJECTED → DONE
- * Example uses: fix a projector, fix a printer, repair network, etc.
- */
+
 public class TechRequest implements Serializable {
-    private static final long serialVersionUID = 1L;
 
     private static int counter = 1;
 

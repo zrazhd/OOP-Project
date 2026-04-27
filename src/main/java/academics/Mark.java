@@ -4,7 +4,6 @@ import enums.GradeLetter;
 import java.io.Serializable;
 
 public class Mark implements Serializable {
-    private static final long serialVersionUID = 1L;
 
     private double firstAttestation;   // max 30
     private double secondAttestation;  // max 30

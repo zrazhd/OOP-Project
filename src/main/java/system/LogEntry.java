@@ -3,12 +3,8 @@ package system;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * Immutable log entry recording a user action in the system.
- * Created by Admin whenever a significant action occurs.
- */
+
 public class LogEntry implements Serializable {
-    private static final long serialVersionUID = 1L;
 
     private final String actorName;
     private final String action;

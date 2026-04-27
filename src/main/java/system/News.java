@@ -8,14 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * News represents a university news article.
- * News with NewsType.RESEARCH is automatically pinned (appears first).
- * Any user can add comments.
- * Implements Observer pattern: notifies subscribers via NewsPublisher.
- */
+
 public class News implements Serializable {
-    private static final long serialVersionUID = 1L;
 
     private static int counter = 1;
 

@@ -6,7 +6,6 @@ import research.*;
 import java.util.*;
 
 public class GraduateStudent extends Student implements Researcher {
-    private static final long serialVersionUID = 1L;
 
     private Researcher researcherSupervisor;
     private List<ResearchPaper> researchPapers;

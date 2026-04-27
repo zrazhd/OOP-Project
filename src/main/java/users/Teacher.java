@@ -9,7 +9,6 @@ import research.*;
 import java.util.*;
 
 public class Teacher extends Employee implements Comparable<Teacher> {
-    private static final long serialVersionUID = 1L;
 
     private TeacherPosition position;
     private School school;
