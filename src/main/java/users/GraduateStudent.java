@@ -23,9 +23,7 @@ public class GraduateStudent extends Student implements Researcher {
         this.diplomaProjects = new ArrayList<>();
     }
 
-    /**
-     * Assign a research supervisor. Throws exception if supervisor's h-index < 3.
-     */
+
     public void setSupervisor(Researcher supervisor) throws InvalidSupervisorException {
         if (supervisor.calculateHIndex() < 3) {
             throw new InvalidSupervisorException(
@@ -39,9 +37,7 @@ public class GraduateStudent extends Student implements Researcher {
         return researcherSupervisor;
     }
 
-    /**
-     * Add a research paper as a diploma project.
-     */
+
     public void addDiplomaProject(ResearchPaper paper) {
         if (!diplomaProjects.contains(paper)) {
             diplomaProjects.add(paper);
@@ -55,7 +51,7 @@ public class GraduateStudent extends Student implements Researcher {
         return Collections.unmodifiableList(diplomaProjects);
     }
 
-    // ===== Researcher interface implementation =====
+    // Researcher interface implementation 
 
     @Override
     public List<ResearchPaper> getResearchPapers() {
@@ -81,7 +77,6 @@ public class GraduateStudent extends Student implements Researcher {
             try {
                 project.addParticipant(this);
             } catch (NotResearcherException e) {
-                // Should never happen since GraduateStudent implements Researcher
                 System.err.println("Unexpected error: " + e.getMessage());
             }
         }

@@ -62,7 +62,7 @@ public class Admin extends Employee {
         return null;
     }
 
-    // ===== Logging =====
+    // Logging 
 
     public void log(String action, String details) {
         systemLogs.add(new LogEntry(getFullName(), action, details, LocalDateTime.now()));

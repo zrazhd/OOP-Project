@@ -4,9 +4,7 @@ import users.User;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * Comment attached to a News article.
- */
+
 public class Comment implements Serializable {
 
     private User author;

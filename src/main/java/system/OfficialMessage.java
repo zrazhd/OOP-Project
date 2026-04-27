@@ -19,9 +19,7 @@ public class OfficialMessage implements Serializable {
     private boolean signed;
     private String signatoryTitle; // e.g. "Dean", "Rector"
 
-    /**
-     * Constructor for person-to-person official message.
-     */
+    
     public OfficialMessage(String subject, String body, Employee sender, Employee recipient,
                            boolean signed, String signatoryTitle) {
         this.messageId = counter++;
@@ -34,9 +32,7 @@ public class OfficialMessage implements Serializable {
         this.signatoryTitle = signatoryTitle;
     }
 
-    /**
-     * Constructor for department-wide official message.
-     */
+    
     public OfficialMessage(String subject, String body, Employee sender,
                            String recipientDepartment, boolean signed, String signatoryTitle) {
         this(subject, body, sender, (Employee) null, signed, signatoryTitle);

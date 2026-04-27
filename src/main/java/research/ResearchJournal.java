@@ -4,12 +4,7 @@ import users.User;
 import java.io.Serializable;
 import java.util.*;
 
-/**
- * ResearchJournal — университетский научный журнал.
- * Любой пользователь может подписаться на журнал.
- * При публикации новой статьи все подписчики получают уведомление
- * прямо через вывод в консоль (в реальной системе — email/push).
- */
+
 public class ResearchJournal implements Serializable {
 
     private String name;
@@ -39,12 +34,8 @@ public class ResearchJournal implements Serializable {
         System.out.println(user.getFullName() + " unsubscribed from \"" + name + "\"");
     }
 
-    // ===== Публикация =====
 
-    /**
-     * Publish an article in a journal.
-     * All subscribers receive a notification.
-     */
+    
     public void publishPaper(ResearchPaper paper) {
         papers.add(paper);
         System.out.println("[" + name + "] New paper published: \"" + paper.getTitle() + "\"");
@@ -58,7 +49,7 @@ public class ResearchJournal implements Serializable {
         }
     }
 
-    // ===== Getters =====
+    //Getters and Setters
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

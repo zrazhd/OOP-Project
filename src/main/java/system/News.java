@@ -34,17 +34,12 @@ public class News implements Serializable {
         this.comments = new ArrayList<>();
     }
 
-    /**
-     * Add a comment to this news article.
-     * Any user (by name/role) can comment.
-     */
+
     public void addComment(Comment comment) {
         comments.add(comment);
     }
 
-    /**
-     * Remove a comment (Admin/Manager privilege).
-     */
+
     public void removeComment(Comment comment) {
         comments.remove(comment);
     }

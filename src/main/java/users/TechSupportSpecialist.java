@@ -20,18 +20,12 @@ public class TechSupportSpecialist extends Employee {
         this.completedRequests = new ArrayList<>();
     }
 
-    /**
-     * Assign a request to this specialist.
-     * Called by Admin or Manager when routing a request.
-     */
+    
     public void receiveRequest(TechRequest request) {
         assignedRequests.add(request);
         System.out.println("[TechSupport] " + getFullName() + " received request: " + request.getTitle());
     }
 
-    /**
-     * View all new/unresolved requests. Automatically marks them as VIEWED.
-     */
     public List<TechRequest> viewNewRequests() {
         List<TechRequest> newRequests = new ArrayList<>();
         for (TechRequest req : assignedRequests) {
@@ -45,16 +39,10 @@ public class TechSupportSpecialist extends Employee {
         return newRequests;
     }
 
-    /**
-     * View all requests regardless of status.
-     */
     public List<TechRequest> viewAllRequests() {
         return Collections.unmodifiableList(assignedRequests);
     }
 
-    /**
-     * Accept a request — specialist will work on it.
-     */
     public void acceptRequest(TechRequest request) {
         if (!assignedRequests.contains(request)) {
             System.out.println("[TechSupport] Request not assigned to you.");
@@ -69,9 +57,6 @@ public class TechSupportSpecialist extends Employee {
         }
     }
 
-    /**
-     * Reject a request with a reason.
-     */
     public void rejectRequest(TechRequest request, String reason) {
         if (!assignedRequests.contains(request)) {
             System.out.println("[TechSupport] Request not assigned to you.");
@@ -83,9 +68,6 @@ public class TechSupportSpecialist extends Employee {
                 + " REJECTED by " + getFullName() + ". Reason: " + reason);
     }
 
-    /**
-     * Mark a request as done, optionally leaving a resolution note.
-     */
     public void markAsDone(TechRequest request, String resolutionNote) {
         if (!assignedRequests.contains(request)) {
             System.out.println("[TechSupport] Request not assigned to you.");
@@ -103,9 +85,6 @@ public class TechSupportSpecialist extends Employee {
                 + " marked as DONE. Note: " + resolutionNote);
     }
 
-    /**
-     * View requests filtered by status.
-     */
     public List<TechRequest> viewRequestsByStatus(RequestStatus status) {
         List<TechRequest> result = new ArrayList<>();
         for (TechRequest req : assignedRequests) {
@@ -116,9 +95,6 @@ public class TechSupportSpecialist extends Employee {
         return result;
     }
 
-    /**
-     * Print a summary of all assigned requests.
-     */
     public void printRequestSummary() {
         System.out.println("===== TECH REQUEST SUMMARY for " + getFullName() + " =====");
         System.out.println("Specialization: " + specialization);

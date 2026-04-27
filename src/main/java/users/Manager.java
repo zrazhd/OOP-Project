@@ -25,7 +25,6 @@ public class Manager extends Employee {
         this.newsList = new ArrayList<>();
     }
 
-    // ===== Course management =====
 
     public void addCourseForRegistration(Course course) {
         if (!managedCourses.contains(course)) {
@@ -63,7 +62,6 @@ public class Manager extends Employee {
         }
     }
 
-    // ===== Reports =====
 
     public String generateCourseReport(Course course) {
         StringBuilder sb = new StringBuilder();
@@ -112,7 +110,7 @@ public class Manager extends Employee {
         return sb.toString();
     }
 
-    // ===== Sorting utilities =====
+    // Sorting utilities 
 
     public List<Student> sortStudentsByName(List<Student> students) {
         return students.stream()
@@ -128,7 +126,6 @@ public class Manager extends Employee {
         return teachers.stream().sorted().collect(Collectors.toList());
     }
 
-    // ===== News management =====
 
     public News createNews(String title, String content, NewsType type) {
         News news = new News(title, content, type, this);
@@ -142,14 +139,12 @@ public class Manager extends Employee {
     }
 
     public List<News> getNewsSorted() {
-        // Pinned (Research) first, then by date descending
         return newsList.stream()
                 .sorted(Comparator.comparing(News::isPinned).reversed()
                         .thenComparing(Comparator.comparing(News::getPublishedAt).reversed()))
                 .collect(Collectors.toList());
     }
 
-    // ===== Tech requests (signed ones for manager to review) =====
 
     public List<TechRequest> viewSignedRequests(List<TechRequest> allRequests) {
         return allRequests.stream()
@@ -157,7 +152,7 @@ public class Manager extends Employee {
                 .collect(Collectors.toList());
     }
 
-    // ===== Getters =====
+    // Getters 
 
     public ManagerType getManagerType() { return managerType; }
     public void setManagerType(ManagerType t) { this.managerType = t; }

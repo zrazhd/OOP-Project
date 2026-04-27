@@ -34,9 +34,7 @@ public class TechRequest implements Serializable {
         this.signedByDean = false;
     }
 
-    /**
-     * Sign this request by dean/rector (required for it to appear in manager's view).
-     */
+  
     public void signByDean() {
         this.signedByDean = true;
         touch();

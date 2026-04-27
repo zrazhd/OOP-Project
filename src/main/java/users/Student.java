@@ -37,9 +37,7 @@ public class Student extends User implements Comparable<Student> {
         this.organizationRoles = new HashMap<>();
     }
 
-    /**
-     * Register for a course with credit limit and fail count checks.
-     */
+
     public void registerForCourse(Course course) throws CreditLimitExceededException, TooManyFailsException {
         if (failCount >= MAX_FAILS) {
             throw new TooManyFailsException(getFullName() + " has failed " + failCount + " times. Cannot register for more courses.");
@@ -57,9 +55,7 @@ public class Student extends User implements Comparable<Student> {
         totalCredits += course.getCredits();
     }
 
-    /**
-     * Drop a course.
-     */
+
     public void dropCourse(Course course) {
         if (enrolledCourses.remove(course)) {
             marks.remove(course);
@@ -68,30 +64,21 @@ public class Student extends User implements Comparable<Student> {
         }
     }
 
-    /**
-     * View all courses the student is enrolled in.
-     */
+
     public List<Course> viewCourses() {
         return Collections.unmodifiableList(enrolledCourses);
     }
 
-    /**
-     * View mark for a specific course.
-     */
+
     public Mark viewMark(Course course) {
         return marks.get(course);
     }
 
-    /**
-     * View all marks.
-     */
     public Map<Course, Mark> viewAllMarks() {
         return Collections.unmodifiableMap(marks);
     }
 
-    /**
-     * Get the full transcript.
-     */
+
     public String getTranscript() {
         StringBuilder sb = new StringBuilder();
         sb.append("=== TRANSCRIPT ===\n");
@@ -111,9 +98,7 @@ public class Student extends User implements Comparable<Student> {
         return sb.toString();
     }
 
-    /**
-     * Calculate cumulative GPA.
-     */
+
     public double calculateGPA() {
         if (marks.isEmpty()) return 0.0;
         double totalPoints = 0;
@@ -127,16 +112,11 @@ public class Student extends User implements Comparable<Student> {
         return totalCr == 0 ? 0.0 : totalPoints / totalCr;
     }
 
-    /**
-     * Record a fail (called when a mark < 50 is finalized).
-     */
+    
     public void recordFail() {
         failCount++;
     }
 
-    /**
-     * View info about a teacher of a specific course.
-     */
     public String viewTeacherInfo(Course course) {
         StringBuilder sb = new StringBuilder();
         sb.append("Teachers for ").append(course.getName()).append(":\n");
@@ -151,9 +131,6 @@ public class Student extends User implements Comparable<Student> {
         return sb.toString();
     }
 
-    /**
-     * Rate a teacher (1-10 scale).
-     */
     public void rateTeacher(Teacher teacher, int rating) {
         if (rating < 1 || rating > 10) {
             throw new IllegalArgumentException("Rating must be between 1 and 10");
@@ -161,9 +138,6 @@ public class Student extends User implements Comparable<Student> {
         teacher.addRating(rating);
     }
 
-    /**
-     * Join a student organization as member or head.
-     */
     public void joinOrganization(String orgName, boolean isHead) {
         if (!organizations.contains(orgName)) {
             organizations.add(orgName);
@@ -176,9 +150,8 @@ public class Student extends User implements Comparable<Student> {
         organizationRoles.remove(orgName);
     }
 
-    /**
-     * Sort comparison by GPA (descending).
-     */
+    //Sort comparison by GPA (descending).
+     
     @Override
     public int compareTo(Student other) {
         return Double.compare(other.calculateGPA(), this.calculateGPA());
