@@ -11,7 +11,7 @@ public interface Researcher {
 
     void addResearchPaper(ResearchPaper paper);
 
-    void joinResearchProject(ResearchProject project);
+    void joinResearchProject(ResearchProject project) throws NotResearcherException;
 
     int calculateHIndex();
 

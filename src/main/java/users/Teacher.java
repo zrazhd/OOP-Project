@@ -8,7 +8,7 @@ import enums.School;
 import research.*;
 import java.util.*;
 
-public class Teacher extends Employee implements Comparable<Teacher> {
+public class Teacher extends Employee implements Comparable<Teacher>, Researcher {
     private static final long serialVersionUID = 1L;
 
     private TeacherPosition position;
