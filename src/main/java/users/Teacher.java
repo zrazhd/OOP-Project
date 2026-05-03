@@ -29,7 +29,6 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         this.courses = new ArrayList<>();
         this.ratings = new ArrayList<>();
 
-        // Professors are ALWAYS researchers
         if (position == TeacherPosition.PROFESSOR) {
             this.isResearcher = true;
         } else {
@@ -39,18 +38,10 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         this.researchProjects = new ArrayList<>();
     }
 
-    // ===== Teaching methods =====
-
-    /**
-     * View all courses this teacher teaches.
-     */
     public List<Course> viewCourses() {
         return Collections.unmodifiableList(courses);
     }
 
-    /**
-     * Add a course (called by Manager when assigning).
-     */
     public void addCourse(Course course) {
         if (!courses.contains(course)) {
             courses.add(course);
@@ -61,9 +52,6 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         courses.remove(course);
     }
 
-    /**
-     * Put a mark for a student in a course.
-     */
     public void putMark(Student student, Course course, double att1, double att2, double finalExam) {
         if (!courses.contains(course)) {
             System.out.println("You don't teach " + course.getName());
@@ -83,9 +71,6 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         }
     }
 
-    /**
-     * View students in a course.
-     */
     public List<Student> viewStudents(Course course) {
         if (!courses.contains(course)) {
             System.out.println("You don't teach " + course.getName());
@@ -94,25 +79,16 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         return course.getEnrolledStudents();
     }
 
-    /**
-     * Send a complaint about a student to the dean.
-     */
     public Complaint sendComplaint(Student student, UrgencyLevel urgency, String reason) {
         Complaint complaint = new Complaint(this, student, urgency, reason);
         System.out.println("Complaint sent about " + student.getFullName() + " with urgency " + urgency);
         return complaint;
     }
 
-    /**
-     * Add a rating from a student.
-     */
     public void addRating(int rating) {
         ratings.add(rating);
     }
 
-    /**
-     * Get the average rating.
-     */
     public double getAverageRating() {
         if (ratings.isEmpty()) return 0.0;
         int sum = 0;
@@ -122,7 +98,6 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         return (double) sum / ratings.size();
     }
 
-    // ===== Researcher methods (only if isResearcher) =====
 
     public void becomeResearcher() {
         this.isResearcher = true;
@@ -187,9 +162,7 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         return researchProjects;
     }
 
-    /**
-     * Sort teachers by average rating (descending).
-     */
+    // Sort teachers by average rating (descending).
     @Override
     public int compareTo(Teacher other) {
         return Double.compare(other.getAverageRating(), this.getAverageRating());
