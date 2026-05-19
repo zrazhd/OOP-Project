@@ -2,6 +2,8 @@ package app;
 
 import enums.RequestStatus;
 import system.TechRequest;
+import users.Employee;
+import users.Message;
 import users.TechSupportSpecialist;
 
 import java.util.List;
@@ -10,7 +12,7 @@ import java.util.Scanner;
 /**
  * Console menu for TechSupportSpecialist users.
  * Covers: viewing new/all requests, accepting, rejecting, marking as done,
- * filtering by status, and a summary dashboard.
+ * filtering by status, summary dashboard, and messaging.
  */
 public class TechSupportMenu {
 
@@ -34,6 +36,8 @@ public class TechSupportMenu {
             System.out.println("5. Mark request as DONE");
             System.out.println("6. Filter requests by status");
             System.out.println("7. My summary dashboard");
+            System.out.println("8. Send message to employee");
+            System.out.println("9. View inbox");
             System.out.println("0. Logout");
             System.out.println("==========================================");
             System.out.print("Choice: ");
@@ -46,6 +50,8 @@ public class TechSupportMenu {
                 case 5 -> markDone();
                 case 6 -> filterByStatus();
                 case 7 -> specialist.printRequestSummary();
+                case 8 -> sendMessage();
+                case 9 -> viewInbox();
                 case 0 -> {
                     System.out.println("Logging out...");
                     return;
@@ -112,7 +118,6 @@ public class TechSupportMenu {
     // ─── 5. Mark DONE ────────────────────────────────────────────────────────────
 
     private void markDone() {
-        // Only accepted requests can be marked done
         List<TechRequest> accepted = specialist.viewRequestsByStatus(RequestStatus.ACCEPTED);
         if (accepted.isEmpty()) {
             System.out.println("No ACCEPTED requests to mark as done.");
@@ -152,9 +157,47 @@ public class TechSupportMenu {
         }
     }
 
+    // ─── 8. Send message ─────────────────────────────────────────────────────────
+
+    private void sendMessage() {
+        List<Employee> employees = database.getEmployees();
+        if (employees.isEmpty()) {
+            System.out.println("No employees.");
+            return;
+        }
+        System.out.println("\n--- Employees ---");
+        for (int i = 0; i < employees.size(); i++) {
+            Employee e = employees.get(i);
+            System.out.println((i + 1) + ". " + e.getFullName() + " (" + e.getClass().getSimpleName() + ")");
+        }
+        System.out.print("Select employee: ");
+        int idx = readInt() - 1;
+        if (idx < 0 || idx >= employees.size()) {
+            System.out.println("Invalid.");
+            return;
+        }
+        System.out.print("Message: ");
+        String text = readLine();
+        specialist.sendMessage(employees.get(idx), text);
+        System.out.println("Message sent.");
+    }
+
+    // ─── 9. View inbox ───────────────────────────────────────────────────────────
+
+    private void viewInbox() {
+        List<Message> inbox = specialist.getInbox();
+        if (inbox.isEmpty()) {
+            System.out.println("Inbox is empty.");
+            return;
+        }
+        System.out.println("\n=== Inbox (" + inbox.size() + " messages) ===");
+        for (Message msg : inbox) {
+            System.out.println("  " + msg);
+        }
+    }
+
     // ─── helpers ─────────────────────────────────────────────────────────────────
 
-    /** Pick a request by number from a numbered list. */
     private TechRequest pickRequest(List<TechRequest> requests, String action) {
         printNumberedRequests(requests);
         System.out.print("Enter number to " + action + ": ");

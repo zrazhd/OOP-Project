@@ -3,24 +3,29 @@ package app;
 import academics.Course;
 import enums.NewsType;
 import enums.School;
+import system.Comment;
 import system.News;
-import users.Manager;
-import users.Student;
-import users.Teacher;
+import system.OfficialMessage;
+import users.*;
 
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Console menu for Manager users.
+ * Covers: course management, teacher assignments, student registration approval,
+ * reports, news, official messages, messaging.
+ */
 public class ManagerMenu {
 
     private final Manager manager;
     private final Database db;
     private final Scanner scanner;
 
-    public ManagerMenu(Manager manager) {
+    public ManagerMenu(Manager manager, Database db, Scanner scanner) {
         this.manager = manager;
-        this.db = Database.getInstance();
-        this.scanner = new Scanner(System.in);
+        this.db = db;
+        this.scanner = scanner;
     }
 
     public void show() {
@@ -41,6 +46,9 @@ public class ManagerMenu {
             System.out.println("9.  Create news");
             System.out.println("10. View all news");
             System.out.println("11. Delete news");
+            System.out.println("12. Send message to employee");
+            System.out.println("13. View inbox");
+            System.out.println("14. Send official message");
             System.out.println("0.  Logout");
             System.out.print("Choose: ");
 
@@ -58,6 +66,9 @@ public class ManagerMenu {
                 case "9"  -> createNews();
                 case "10" -> viewAllNews();
                 case "11" -> deleteNews();
+                case "12" -> sendMessage();
+                case "13" -> viewInbox();
+                case "14" -> sendOfficialMessage();
                 case "0"  -> {
                     System.out.println("Logging out...");
                     running = false;
@@ -181,22 +192,32 @@ public class ManagerMenu {
         } catch (NumberFormatException ignored) {}
 
         News news = manager.createNews(title, content, type);
+        db.addNews(news);
         System.out.println("News created: " + news.getTitle());
     }
 
     // 10. View all news 
 
     private void viewAllNews() {
-        List<News> newsList = manager.getNewsSorted();
+        List<News> newsList = db.getNewsList();
         if (newsList.isEmpty()) {
             System.out.println("No news yet.");
             return;
         }
-        System.out.println("\n=== News ===");
+        System.out.println("\n=== University News ===");
         for (int i = 0; i < newsList.size(); i++) {
             News n = newsList.get(i);
-            String pinned = n.isPinned() ? "[PINNED] " : "";
-            System.out.printf("  %d. %s%s (%s)%n", i + 1, pinned, n.getTitle(), n.getType());
+            String display = (i + 1) + ". " + n.toString();
+            // Research news highlighted in ANSI yellow
+            if (n.isPinned()) {
+                display = "\033[1;33m" + display + "\033[0m";
+            }
+            System.out.println(display);
+            if (!n.getComments().isEmpty()) {
+                for (system.Comment c : n.getComments()) {
+                    System.out.println("     💬 " + c);
+                }
+            }
         }
     }
 
@@ -216,6 +237,71 @@ public class ManagerMenu {
         if (news == null) return;
         manager.deleteNews(news);
         System.out.println("News deleted.");
+    }
+
+    // 12. Send message to employee
+
+    private void sendMessage() {
+        List<Employee> employees = db.getEmployees();
+        if (employees.isEmpty()) {
+            System.out.println("No employees.");
+            return;
+        }
+        System.out.println("\n--- Employees ---");
+        for (int i = 0; i < employees.size(); i++) {
+            Employee e = employees.get(i);
+            System.out.println((i + 1) + ". " + e.getFullName() + " (" + e.getClass().getSimpleName() + ")");
+        }
+        Employee receiver = pickFromList(employees);
+        if (receiver == null) return;
+
+        System.out.print("Message: ");
+        String text = scanner.nextLine().trim();
+        manager.sendMessage(receiver, text);
+        System.out.println("Message sent to " + receiver.getFullName());
+    }
+
+    // 13. View inbox
+
+    private void viewInbox() {
+        List<Message> inbox = manager.getInbox();
+        if (inbox.isEmpty()) {
+            System.out.println("Inbox is empty.");
+            return;
+        }
+        System.out.println("\n=== Inbox (" + inbox.size() + " messages) ===");
+        for (Message msg : inbox) {
+            System.out.println("  " + msg);
+        }
+    }
+
+    // 14. Send official message
+
+    private void sendOfficialMessage() {
+        System.out.print("Subject: ");
+        String subject = scanner.nextLine().trim();
+        System.out.print("Body: ");
+        String body = scanner.nextLine().trim();
+
+        System.out.println("Send to: 1=Employee  2=Department");
+        System.out.print("Choice: ");
+        int sendTo = readInt();
+
+        OfficialMessage message;
+        if (sendTo == 1) {
+            List<Employee> employees = db.getEmployees();
+            for (int i = 0; i < employees.size(); i++) {
+                System.out.println((i + 1) + ". " + employees.get(i).getFullName());
+            }
+            Employee recipient = pickFromList(employees);
+            if (recipient == null) return;
+            message = new OfficialMessage(subject, body, manager, recipient, true, manager.getManagerType().toString());
+        } else {
+            System.out.print("Department name: ");
+            String dept = scanner.nextLine().trim();
+            message = new OfficialMessage(subject, body, manager, dept, true, manager.getManagerType().toString());
+        }
+        System.out.println("Official message sent:\n" + message);
     }
 
     // Helpers 
@@ -280,5 +366,13 @@ public class ManagerMenu {
         } catch (NumberFormatException ignored) {}
         System.out.println("Invalid selection.");
         return null;
+    }
+
+    private int readInt() {
+        try {
+            return Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 }

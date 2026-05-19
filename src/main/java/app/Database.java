@@ -1,24 +1,33 @@
 package app;
 
 import academics.Course;
-import enums.CourseType;
+import research.ResearchJournal;
+import research.ResearchPaper;
+import research.Researcher;
 import system.News;
 import system.TechRequest;
-import users.Student;
-import users.Teacher;
-import users.User;
+import users.*;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Database {
+/**
+ * Singleton database — central data store for the university system.
+ * Supports serialization (save/load) for data persistence.
+ * Design patterns: Singleton.
+ */
+public class Database implements Serializable {
+    private static final long serialVersionUID = 1L;
     private static Database instance;
 
     private final List<User> users = new ArrayList<>();
     private final List<Course> courses = new ArrayList<>();
     private final List<News> newsList = new ArrayList<>();
     private final List<TechRequest> techRequests = new ArrayList<>();
+    private final List<Complaint> complaints = new ArrayList<>();
+    private final List<ResearchJournal> journals = new ArrayList<>();
 
     private Database() {
     }
@@ -30,6 +39,37 @@ public class Database {
         return instance;
     }
 
+    // ─── Serialization (Data Storage pattern) ────────────────────────────────────
+
+    private static final String DATA_FILE = "university_data.ser";
+
+    public void save() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(DATA_FILE))) {
+            oos.writeObject(this);
+            System.out.println("[Database] Data saved to " + DATA_FILE);
+        } catch (IOException e) {
+            System.out.println("[Database] Save failed: " + e.getMessage());
+        }
+    }
+
+    public static Database load() {
+        File file = new File(DATA_FILE);
+        if (!file.exists()) {
+            return null;
+        }
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            Database loaded = (Database) ois.readObject();
+            instance = loaded;
+            System.out.println("[Database] Data loaded from " + DATA_FILE);
+            return loaded;
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("[Database] Load failed: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // ─── User CRUD ───────────────────────────────────────────────────────────────
+
     public boolean addUser(User user) {
         if (user == null || findUserById(user.getUserId()) != null || findUserByEmail(user.getEmail()) != null) {
             return false;
@@ -38,17 +78,8 @@ public class Database {
         return true;
     }
 
-    public boolean addCourse(Course course) {
-        if (course == null) {
-            return false;
-        }
-
-        String courseId = course.getCourseId();
-        if (courseId == null || courseId.isBlank() || findCourseById(courseId) != null) {
-            return false;
-        }
-        courses.add(course);
-        return true;
+    public boolean removeUser(String userId) {
+        return users.removeIf(u -> u.getUserId().equals(userId));
     }
 
     public User login(String email, String password) {
@@ -76,9 +107,32 @@ public class Database {
                 .orElse(null);
     }
 
+    // ─── Course CRUD ─────────────────────────────────────────────────────────────
+
+    public boolean addCourse(Course course) {
+        if (course == null) {
+            return false;
+        }
+        String courseId = course.getCourseId();
+        if (courseId == null || courseId.isBlank() || findCourseById(courseId) != null) {
+            return false;
+        }
+        courses.add(course);
+        return true;
+    }
+
     public List<Course> getCourses() {
         return Collections.unmodifiableList(courses);
     }
+
+    public Course findCourseById(String courseId) {
+        return courses.stream()
+                .filter(course -> course.getCourseId().equalsIgnoreCase(courseId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    // ─── News ────────────────────────────────────────────────────────────────────
 
     public boolean addNews(News news) {
         if (news == null || newsList.contains(news)) {
@@ -88,6 +142,12 @@ public class Database {
         return true;
     }
 
+    public List<News> getNewsList() {
+        return Collections.unmodifiableList(newsList);
+    }
+
+    // ─── Tech Requests ───────────────────────────────────────────────────────────
+
     public boolean addTechRequest(TechRequest request) {
         if (request == null || techRequests.contains(request)) {
             return false;
@@ -96,13 +156,33 @@ public class Database {
         return true;
     }
 
-    public List<News> getNewsList() {
-        return Collections.unmodifiableList(newsList);
-    }
-
     public List<TechRequest> getTechRequests() {
         return Collections.unmodifiableList(techRequests);
     }
+
+    // ─── Complaints ──────────────────────────────────────────────────────────────
+
+    public void addComplaint(Complaint complaint) {
+        complaints.add(complaint);
+    }
+
+    public List<Complaint> getComplaints() {
+        return Collections.unmodifiableList(complaints);
+    }
+
+    // ─── Research Journals ───────────────────────────────────────────────────────
+
+    public void addJournal(ResearchJournal journal) {
+        if (!journals.contains(journal)) {
+            journals.add(journal);
+        }
+    }
+
+    public List<ResearchJournal> getJournals() {
+        return Collections.unmodifiableList(journals);
+    }
+
+    // ─── Filtered queries ────────────────────────────────────────────────────────
 
     public List<Student> getStudents() {
         List<Student> students = new ArrayList<>();
@@ -124,10 +204,43 @@ public class Database {
         return teachers;
     }
 
-    public Course findCourseById(String courseId) {
-        return courses.stream()
-                .filter(course -> course.getCourseId().equalsIgnoreCase(courseId))
-                .findFirst()
-                .orElse(null);
+    public List<Employee> getEmployees() {
+        List<Employee> employees = new ArrayList<>();
+        for (User user : users) {
+            if (user instanceof Employee emp) {
+                employees.add(emp);
+            }
+        }
+        return employees;
+    }
+
+    /**
+     * Collect every ResearchPaper from every Researcher in the system.
+     */
+    public List<ResearchPaper> getAllResearchPapers() {
+        List<ResearchPaper> all = new ArrayList<>();
+        for (Researcher r : getAllResearchers()) {
+            for (ResearchPaper p : r.getResearchPapers()) {
+                if (!all.contains(p)) {
+                    all.add(p);
+                }
+            }
+        }
+        return all;
+    }
+
+    /**
+     * Return every user who implements Researcher.
+     */
+    public List<Researcher> getAllResearchers() {
+        List<Researcher> result = new ArrayList<>();
+        for (User u : users) {
+            if (u instanceof Teacher t && t.isResearcher()) {
+                result.add(t);
+            } else if (u instanceof GraduateStudent gs) {
+                result.add(gs);
+            }
+        }
+        return result;
     }
 }

@@ -1,9 +1,12 @@
 package app;
 
 import enums.CitationFormat;
+import enums.NewsType;
 import research.*;
+import system.News;
 import users.GraduateStudent;
 import users.Teacher;
+import users.User;
 
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -11,8 +14,8 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * Shared researcher sub-menu, callable from both TeacherMenu and StudentMenu
- * when the user is a Researcher (Teacher who isResearcher(), or GraduateStudent).
+ * Shared researcher sub-menu, callable from both Teacher and GraduateStudent menus.
+ * Demonstrates the Researcher interface and Observer pattern (journal subscriptions).
  *
  * Usage:
  *   new ResearcherMenu(teacher, database, scanner).show();
@@ -53,10 +56,14 @@ public class ResearcherMenu {
             System.out.println("7.  Add paper to a project");
             System.out.println("8.  View ALL university papers (sorted)");
             System.out.println("9.  Top cited researchers in university");
+            System.out.println("10. Publish paper to journal");
+            System.out.println("11. Subscribe to research journal");
+            System.out.println("12. View research journals");
             if (researcher instanceof GraduateStudent) {
-                System.out.println("10. Add diploma project");
-                System.out.println("11. View diploma projects");
-                System.out.println("12. Set supervisor");
+                System.out.println("--- Graduate Student ---");
+                System.out.println("13. Add diploma project");
+                System.out.println("14. View diploma projects");
+                System.out.println("15. Set supervisor");
             }
             System.out.println("0.  Back");
             System.out.println("=========================================");
@@ -73,9 +80,12 @@ public class ResearcherMenu {
                 case 7  -> addPaperToProject();
                 case 8  -> viewAllUniversityPapers();
                 case 9  -> topCitedResearchers();
-                case 10 -> { if (researcher instanceof GraduateStudent gs) addDiplomaProject(gs); else back(); }
-                case 11 -> { if (researcher instanceof GraduateStudent gs) viewDiplomaProjects(gs); else back(); }
-                case 12 -> { if (researcher instanceof GraduateStudent gs) setSupervisor(gs); else back(); }
+                case 10 -> publishToJournal();
+                case 11 -> subscribeToJournal();
+                case 12 -> viewJournals();
+                case 13 -> { if (researcher instanceof GraduateStudent gs) addDiplomaProject(gs); else back(); }
+                case 14 -> { if (researcher instanceof GraduateStudent gs) viewDiplomaProjects(gs); else back(); }
+                case 15 -> { if (researcher instanceof GraduateStudent gs) setSupervisor(gs); else back(); }
                 case 0  -> { return; }
                 default -> System.out.println("Invalid option.");
             }
@@ -232,13 +242,82 @@ public class ResearcherMenu {
         System.out.println("\n=== Top Cited Researchers (by h-index) ===");
         int rank = 1;
         for (Researcher r : researchers) {
-            String name = (r instanceof users.User u) ? u.getFullName() : r.toString();
+            String name = (r instanceof User u) ? u.getFullName() : r.toString();
             System.out.printf("%2d. %-30s  h-index: %d   papers: %d%n",
                     rank++, name, r.calculateHIndex(), r.getResearchPapers().size());
         }
     }
 
-    // ─── 10. Add diploma project (GraduateStudent only) ──────────────────────────
+    // ─── 10. Publish paper to journal (Observer pattern) ─────────────────────────
+
+    private void publishToJournal() {
+        List<ResearchPaper> papers = researcher.getResearchPapers();
+        if (papers.isEmpty()) { System.out.println("No papers to publish."); return; }
+
+        List<ResearchJournal> journals = database.getJournals();
+        if (journals.isEmpty()) { System.out.println("No journals available."); return; }
+
+        printNumberedPapers(papers);
+        System.out.print("Select paper to publish: ");
+        int pIdx = readInt();
+        if (pIdx < 1 || pIdx > papers.size()) { System.out.println("Invalid."); return; }
+
+        System.out.println("--- Journals ---");
+        for (int i = 0; i < journals.size(); i++) {
+            System.out.println((i + 1) + ". " + journals.get(i).getName());
+        }
+        System.out.print("Select journal: ");
+        int jIdx = readInt();
+        if (jIdx < 1 || jIdx > journals.size()) { System.out.println("Invalid."); return; }
+
+        ResearchJournal journal = journals.get(jIdx - 1);
+        ResearchPaper paper = papers.get(pIdx - 1);
+        journal.publishPaper(paper);
+
+        // Auto-generate Research news announcement
+        if (researcher instanceof User user) {
+            News announcement = new News(
+                    "New Publication: " + paper.getTitle(),
+                    user.getFullName() + " published a new paper \"" + paper.getTitle()
+                            + "\" in " + journal.getName() + ".",
+                    NewsType.RESEARCH,
+                    (users.Employee) user
+            );
+            database.addNews(announcement);
+            System.out.println("[Auto] Research news announcement created.");
+        }
+    }
+
+    // ─── 11. Subscribe to journal ────────────────────────────────────────────────
+
+    private void subscribeToJournal() {
+        List<ResearchJournal> journals = database.getJournals();
+        if (journals.isEmpty()) { System.out.println("No journals."); return; }
+
+        for (int i = 0; i < journals.size(); i++) {
+            System.out.println((i + 1) + ". " + journals.get(i));
+        }
+        System.out.print("Subscribe to journal number: ");
+        int idx = readInt() - 1;
+        if (idx < 0 || idx >= journals.size()) { System.out.println("Invalid."); return; }
+
+        if (researcher instanceof User user) {
+            journals.get(idx).subscribe(user);
+        }
+    }
+
+    // ─── 12. View journals ───────────────────────────────────────────────────────
+
+    private void viewJournals() {
+        List<ResearchJournal> journals = database.getJournals();
+        if (journals.isEmpty()) { System.out.println("No journals."); return; }
+        System.out.println("\n=== Research Journals ===");
+        for (ResearchJournal j : journals) {
+            System.out.println("  " + j);
+        }
+    }
+
+    // ─── 13. Add diploma project (GraduateStudent only) ──────────────────────────
 
     private void addDiplomaProject(GraduateStudent gs) {
         System.out.print("Diploma project title: ");
@@ -256,7 +335,7 @@ public class ResearcherMenu {
         System.out.println("Diploma project added.");
     }
 
-    // ─── 11. View diploma projects ───────────────────────────────────────────────
+    // ─── 14. View diploma projects ───────────────────────────────────────────────
 
     private void viewDiplomaProjects(GraduateStudent gs) {
         List<ResearchPaper> diplomas = gs.getDiplomaProjects();
@@ -265,19 +344,18 @@ public class ResearcherMenu {
         diplomas.forEach(System.out::println);
     }
 
-    // ─── 12. Set supervisor ───────────────────────────────────────────────────────
+    // ─── 15. Set supervisor ───────────────────────────────────────────────────────
 
     private void setSupervisor(GraduateStudent gs) {
         List<Teacher> teachers = database.getTeachers();
         if (teachers.isEmpty()) { System.out.println("No teachers available."); return; }
 
         System.out.println("\n--- Available Supervisors (Researchers) ---");
-        int i = 1;
-        for (Teacher t : teachers) {
+        for (int i = 0; i < teachers.size(); i++) {
+            Teacher t = teachers.get(i);
             if (t.isResearcher()) {
-                System.out.printf("%d. %-28s  h-index: %d%n", i, t.getFullName(), t.calculateHIndex());
+                System.out.printf("%d. %-28s  h-index: %d%n", i + 1, t.getFullName(), t.calculateHIndex());
             }
-            i++;
         }
 
         System.out.print("Enter teacher number: ");
@@ -293,9 +371,6 @@ public class ResearcherMenu {
 
     // ─── utilities ───────────────────────────────────────────────────────────────
 
-    /**
-     * Let the user pick a sort order for papers.
-     */
     private Comparator<ResearchPaper> pickComparator() {
         System.out.println("Sort by: 1=Date  2=Citations (desc)  3=Pages (desc)");
         System.out.print("Choice: ");

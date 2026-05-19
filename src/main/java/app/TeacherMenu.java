@@ -1,27 +1,32 @@
 package app;
 
 import academics.Course;
+import enums.CitationFormat;
 import enums.UrgencyLevel;
+import research.ResearchPaper;
+import system.Comment;
+import system.News;
+import users.*;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
-import research.NotResearcherException;
-import research.ResearchPaper;
-import research.ResearchProject;
-import users.Complaint;
-import users.Student;
-import users.Teacher;
 
+/**
+ * Console menu for Teacher users.
+ * Covers: viewing courses, students, putting marks, sending complaints,
+ * sending messages, viewing/commenting news.
+ */
 public class TeacherMenu {
 
     private final Teacher teacher;
     private final Database db;
     private final Scanner scanner;
 
-    public TeacherMenu(Teacher teacher) {
+    public TeacherMenu(Teacher teacher, Database db, Scanner scanner) {
         this.teacher = teacher;
-        this.db = Database.getInstance();
-        this.scanner = new Scanner(System.in);
+        this.db = db;
+        this.scanner = scanner;
     }
 
     public void show() {
@@ -32,37 +37,30 @@ public class TeacherMenu {
             System.out.println("Position: " + teacher.getPosition() + " | School: " + teacher.getSchool());
             System.out.println("Rating: " + String.format("%.1f", teacher.getAverageRating()));
             System.out.println("--------------------");
-            System.out.println("1. View my courses");
-            System.out.println("2. View students in a course");
-            System.out.println("3. Put marks for a student");
-            System.out.println("4. Send complaint about a student");
-
-            if (teacher.isResearcher()) {
-                System.out.println("--- Research ---");
-                System.out.println("5. Add research paper");
-                System.out.println("6. View my research papers");
-                System.out.println("7. Join research project");
-                System.out.println("8. View my h-index");
-                System.out.println("9. Print papers sorted by citations");
-            }
-
-            System.out.println("0. Logout");
+            System.out.println("1.  View my courses");
+            System.out.println("2.  View students in a course");
+            System.out.println("3.  Put marks for a student");
+            System.out.println("4.  Send complaint about a student");
+            System.out.println("5.  Send message to an employee");
+            System.out.println("6.  View inbox");
+            System.out.println("7.  View news");
+            System.out.println("8.  Add comment to news");
+            System.out.println("0.  Back");
             System.out.print("Choose: ");
 
             String input = scanner.nextLine().trim();
 
             switch (input) {
-                case "1" -> viewCourses();
-                case "2" -> viewStudentsInCourse();
-                case "3" -> putMarks();
-                case "4" -> sendComplaint();
-                case "5" -> { if (teacher.isResearcher()) addResearchPaper(); else unknown(); }
-                case "6" -> { if (teacher.isResearcher()) viewResearchPapers(); else unknown(); }
-                case "7" -> { if (teacher.isResearcher()) joinResearchProject(); else unknown(); }
-                case "8" -> { if (teacher.isResearcher()) viewHIndex(); else unknown(); }
-                case "9" -> { if (teacher.isResearcher()) printPapersSorted(); else unknown(); }
-                case "0" -> {
-                    System.out.println("Logging out...");
+                case "1"  -> viewCourses();
+                case "2"  -> viewStudentsInCourse();
+                case "3"  -> putMarks();
+                case "4"  -> sendComplaint();
+                case "5"  -> sendMessage();
+                case "6"  -> viewInbox();
+                case "7"  -> viewNews();
+                case "8"  -> commentOnNews();
+                case "0"  -> {
+                    System.out.println("Returning...");
                     running = false;
                 }
                 default -> System.out.println("Invalid option. Try again.");
@@ -97,7 +95,8 @@ public class TeacherMenu {
         }
         System.out.println("\n=== Students in " + course.getName() + " ===");
         for (int i = 0; i < students.size(); i++) {
-            System.out.printf("  %d. %s%n", i + 1, students.get(i).getFullName());
+            Student s = students.get(i);
+            System.out.printf("  %d. %-28s GPA: %.2f%n", i + 1, s.getFullName(), s.calculateGPA());
         }
     }
 
@@ -175,96 +174,93 @@ public class TeacherMenu {
         String reason = scanner.nextLine().trim();
 
         Complaint complaint = teacher.sendComplaint(student, urgency, reason);
+        db.addComplaint(complaint);
         System.out.println("Complaint submitted: " + complaint);
     }
 
-    // ── 5. Add research paper ─────────────────────────────────────────────────
+    // ── 5. Send message to employee ───────────────────────────────────────────
 
-    private void addResearchPaper() {
-        System.out.print("Paper title: ");
-        String title = scanner.nextLine().trim();
-
-        System.out.print("Authors (comma-separated): ");
-        String[] authorsArr = scanner.nextLine().trim().split(",");
-        List<String> authors = new java.util.ArrayList<>();
-        for (String a : authorsArr) authors.add(a.trim());
-
-        System.out.print("Journal name: ");
-        String journal = scanner.nextLine().trim();
-
-        System.out.print("Pages (number): ");
-        int pages = 0;
-        try {
-            pages = Integer.parseInt(scanner.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid number, defaulting to 0.");
-        }
-
-        System.out.print("Date published (YYYY-MM-DD): ");
-        java.time.LocalDate date = java.time.LocalDate.now();
-        try {
-            date = java.time.LocalDate.parse(scanner.nextLine().trim());
-        } catch (Exception e) {
-            System.out.println("Invalid date, using today.");
-        }
-
-        System.out.print("DOI (or leave blank): ");
-        String doi = scanner.nextLine().trim();
-
-        System.out.print("Citations: ");
-        int citations = 0;
-        try {
-            citations = Integer.parseInt(scanner.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid number, defaulting to 0.");
-        }
-
-        ResearchPaper paper = new ResearchPaper(title, authors, journal, pages, date, doi, citations);
-        teacher.addResearchPaper(paper);
-        System.out.println("Research paper added: " + title);
-    }
-
-    // ── 6. View research papers ───────────────────────────────────────────────
-
-    private void viewResearchPapers() {
-        List<ResearchPaper> papers = teacher.getResearchPapers();
-        if (papers.isEmpty()) {
-            System.out.println("You have no research papers yet.");
+    private void sendMessage() {
+        List<Employee> employees = db.getEmployees();
+        if (employees.isEmpty()) {
+            System.out.println("No employees in the system.");
             return;
         }
-        System.out.println("\n=== Your Research Papers ===");
-        for (int i = 0; i < papers.size(); i++) {
-            System.out.println((i + 1) + ". " + papers.get(i));
+        System.out.println("\n--- Employees ---");
+        for (int i = 0; i < employees.size(); i++) {
+            Employee e = employees.get(i);
+            System.out.println((i + 1) + ". " + e.getFullName() + " (" + e.getClass().getSimpleName() + ")");
+        }
+        Employee receiver = pickFromList(employees);
+        if (receiver == null) return;
+
+        System.out.print("Message: ");
+        String text = scanner.nextLine().trim();
+        teacher.sendMessage(receiver, text);
+        System.out.println("Message sent to " + receiver.getFullName());
+    }
+
+    // ── 6. View inbox ─────────────────────────────────────────────────────────
+
+    private void viewInbox() {
+        List<Message> inbox = teacher.getInbox();
+        if (inbox.isEmpty()) {
+            System.out.println("Inbox is empty.");
+            return;
+        }
+        System.out.println("\n=== Inbox (" + inbox.size() + " messages) ===");
+        for (Message msg : inbox) {
+            System.out.println("  " + msg);
         }
     }
 
-    // ── 7. Join research project ──────────────────────────────────────────────
+    // ── 7. View news ──────────────────────────────────────────────────────────
 
-    private void joinResearchProject() {
-        System.out.print("Enter research project name to join: ");
-        String projectName = scanner.nextLine().trim();
-        // In a real system you'd pick from a list in the DB;
-        // here we create a stub project and let the teacher join it.
-        ResearchProject project = new ResearchProject(projectName);
-        try {
-            teacher.joinResearchProject(project);
-            System.out.println("Joined project: " + projectName);
-        } catch (NotResearcherException e) {
-            System.out.println("Error: " + e.getMessage());
+    private void viewNews() {
+        List<News> news = db.getNewsList();
+        if (news.isEmpty()) {
+            System.out.println("No news.");
+            return;
+        }
+        System.out.println("\n=== University News ===");
+        for (int i = 0; i < news.size(); i++) {
+            News n = news.get(i);
+            String display = (i + 1) + ". " + n.toString();
+            // Research news highlighted in color (ANSI yellow)
+            if (n.isPinned()) {
+                display = "\033[1;33m" + display + "\033[0m";
+            }
+            System.out.println(display);
+            // Show comments
+            if (!n.getComments().isEmpty()) {
+                for (Comment c : n.getComments()) {
+                    System.out.println("     💬 " + c);
+                }
+            }
         }
     }
 
-    // ── 8. View h-index ───────────────────────────────────────────────────────
+    // ── 8. Comment on news ────────────────────────────────────────────────────
 
-    private void viewHIndex() {
-        int h = teacher.calculateHIndex();
-        System.out.println("Your h-index: " + h);
-    }
-
-    // ── 9. Print papers sorted by citations ───────────────────────────────────
-
-    private void printPapersSorted() {
-        teacher.printPapers(Comparator.comparingInt(ResearchPaper::getCitations).reversed());
+    private void commentOnNews() {
+        List<News> news = db.getNewsList();
+        if (news.isEmpty()) {
+            System.out.println("No news to comment on.");
+            return;
+        }
+        for (int i = 0; i < news.size(); i++) {
+            System.out.println((i + 1) + ". " + news.get(i).getTitle());
+        }
+        System.out.print("Select news number: ");
+        int idx = readInt() - 1;
+        if (idx < 0 || idx >= news.size()) {
+            System.out.println("Invalid selection.");
+            return;
+        }
+        System.out.print("Your comment: ");
+        String text = scanner.nextLine().trim();
+        news.get(idx).addComment(new Comment(teacher, text));
+        System.out.println("Comment added.");
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -291,7 +287,11 @@ public class TeacherMenu {
         return null;
     }
 
-    private void unknown() {
-        System.out.println("Option not available for your role.");
+    private int readInt() {
+        try {
+            return Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 }
