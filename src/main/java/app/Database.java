@@ -2,6 +2,8 @@ package app;
 
 import academics.Course;
 import enums.CourseType;
+import system.News;
+import system.TechRequest;
 import users.Student;
 import users.Teacher;
 import users.User;
@@ -15,6 +17,8 @@ public class Database {
 
     private final List<User> users = new ArrayList<>();
     private final List<Course> courses = new ArrayList<>();
+    private final List<News> newsList = new ArrayList<>();
+    private final List<TechRequest> techRequests = new ArrayList<>();
 
     private Database() {
     }
@@ -26,12 +30,20 @@ public class Database {
         return instance;
     }
 
-    public void addUser(User user) {
+    public boolean addUser(User user) {
+        if (user == null || findUserById(user.getUserId()) != null || findUserByEmail(user.getEmail()) != null) {
+            return false;
+        }
         users.add(user);
+        return true;
     }
 
-    public void addCourse(Course course) {
+    public boolean addCourse(Course course) {
+        if (course == null || findCourseById(course.getCourseId()) != null) {
+            return false;
+        }
         courses.add(course);
+        return true;
     }
 
     public User login(String email, String password) {
@@ -45,8 +57,46 @@ public class Database {
         return Collections.unmodifiableList(users);
     }
 
+    public User findUserById(String userId) {
+        return users.stream()
+                .filter(user -> user.getUserId().equalsIgnoreCase(userId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public User findUserByEmail(String email) {
+        return users.stream()
+                .filter(user -> user.getEmail().equalsIgnoreCase(email))
+                .findFirst()
+                .orElse(null);
+    }
+
     public List<Course> getCourses() {
         return Collections.unmodifiableList(courses);
+    }
+
+    public boolean addNews(News news) {
+        if (news == null || newsList.contains(news)) {
+            return false;
+        }
+        newsList.add(news);
+        return true;
+    }
+
+    public boolean addTechRequest(TechRequest request) {
+        if (request == null || techRequests.contains(request)) {
+            return false;
+        }
+        techRequests.add(request);
+        return true;
+    }
+
+    public List<News> getNewsList() {
+        return Collections.unmodifiableList(newsList);
+    }
+
+    public List<TechRequest> getTechRequests() {
+        return Collections.unmodifiableList(techRequests);
     }
 
     public List<Student> getStudents() {

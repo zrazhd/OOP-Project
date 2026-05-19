@@ -16,11 +16,11 @@ public class ResearchProject implements Serializable {
         this.publishedPapers = new ArrayList<>();
     }
 
-    public void addParticipant(Object person) throws NotResearcherException {
-        if (!(person instanceof Researcher)) {
-            throw new NotResearcherException("Only Researchers can join a ResearchProject. " + person + " is not a Researcher.");
+    public void addParticipant(Researcher person) {
+        if (person == null) return;
+        if (!participants.contains(person)) {
+            participants.add(person);
         }
-        participants.add((Researcher) person);
     }
 
     public void addPaper(ResearchPaper paper) {
