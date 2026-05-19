@@ -74,11 +74,7 @@ public class GraduateStudent extends Student implements Researcher {
     public void joinResearchProject(ResearchProject project) {
         if (!researchProjects.contains(project)) {
             researchProjects.add(project);
-            try {
-                project.addParticipant(this);
-            } catch (NotResearcherException e) {
-                System.err.println("Unexpected error: " + e.getMessage());
-            }
+            project.addParticipant(this);
         }
     }
 

@@ -1,5 +1,7 @@
 package users;
 
+import academics.Course;
+import app.Database;
 import system.LogEntry;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -12,6 +14,28 @@ public class Admin extends Employee {
                  String email, String password, String department) {
         super(userId, firstName, lastName, email, password, department);
         this.systemLogs = new ArrayList<>();
+    }
+
+    public boolean registerUser(Database database, User user) {
+        boolean added = database.addUser(user);
+        if (added) {
+            log("ADD_USER", "Added: " + user.getFullName() + " [" + user.getClass().getSimpleName() + "]");
+            System.out.println("[Admin] User added: " + user.getFullName());
+        } else {
+            System.out.println("[Admin] Cannot add user: duplicate id/email or invalid data");
+        }
+        return added;
+    }
+
+    public boolean registerCourse(Database database, Course course) {
+        boolean added = database.addCourse(course);
+        if (added) {
+            log("ADD_COURSE", "Added course: " + course.getCourseId() + " - " + course.getName());
+            System.out.println("[Admin] Course added: " + course.getCourseId() + " - " + course.getName());
+        } else {
+            System.out.println("[Admin] Cannot add course: duplicate id or invalid data");
+        }
+        return added;
     }
 
 
