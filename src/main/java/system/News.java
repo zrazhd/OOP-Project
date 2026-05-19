@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Objects;
 
 
+/**
+ * Represents the news in the system.
+ */
 public class News implements Serializable {
 
     private static int counter = 1;
@@ -22,6 +25,13 @@ public class News implements Serializable {
     private boolean pinned;
     private List<Comment> comments;
 
+    /**
+     * Constructor for News.
+     * @param title parameter value.
+     * @param content parameter value.
+     * @param type parameter value.
+     * @param author parameter value.
+     */
     public News(String title, String content, NewsType type, Employee author) {
         this.newsId = counter++;
         this.title = title;
@@ -35,32 +45,76 @@ public class News implements Serializable {
     }
 
 
+    /**
+     * addComment.
+     * @param comment parameter value.
+     */
     public void addComment(Comment comment) {
         comments.add(comment);
     }
 
 
+    /**
+     * removeComment.
+     * @param comment parameter value.
+     */
     public void removeComment(Comment comment) {
         comments.remove(comment);
     }
 
+    /**
+     * Gets the comments.
+     * @return List&lt;Comment&gt;
+     */
     public List<Comment> getComments() {
         return comments;
     }
 
     // Getters and Setters
+    /**
+     * Gets the news id.
+     * @return int
+     */
     public int getNewsId() { return newsId; }
+    /**
+     * Gets the title.
+     * @return String
+     */
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+    /**
+     * Gets the content.
+     * @return String
+     */
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+    /**
+     * Gets the type.
+     * @return NewsType
+     */
     public NewsType getType() { return type; }
+    /**
+     * Sets the type.
+     * @param type parameter value.
+     */
     public void setType(NewsType type) {
         this.type = type;
         this.pinned = type.isPinned();
     }
+    /**
+     * Gets the author.
+     * @return Employee
+     */
     public Employee getAuthor() { return author; }
+    /**
+     * Gets the published at.
+     * @return LocalDateTime
+     */
     public LocalDateTime getPublishedAt() { return publishedAt; }
+    /**
+     * Checks if pinned.
+     * @return boolean
+     */
     public boolean isPinned() { return pinned; }
     public void setPinned(boolean pinned) { this.pinned = pinned; }
 

@@ -9,6 +9,9 @@ import java.time.LocalTime;
 import java.util.*;
 
 
+/**
+ * Represents the schedule in the system.
+ */
 public class Schedule implements Serializable {
 
     private int academicYear;
@@ -18,6 +21,11 @@ public class Schedule implements Serializable {
     private Map<String, List<Lesson>> teacherSchedule;
     private List<Lesson> allLessons;
 
+    /**
+     * Constructor for Schedule.
+     * @param academicYear parameter value.
+     * @param semester parameter value.
+     */
     public Schedule(int academicYear, Semester semester) {
         this.academicYear = academicYear;
         this.semester = semester;
@@ -53,20 +61,46 @@ public class Schedule implements Serializable {
         return true;
     }
 
+    /**
+     * hasRoomConflict.
+     * @param room parameter value.
+     * @param day parameter value.
+     * @param start parameter value.
+     * @param end parameter value.
+     * @return boolean
+     */
     private boolean hasRoomConflict(String room, DayOfWeek day, LocalTime start, LocalTime end) {
         List<Lesson> booked = roomSchedule.getOrDefault(room, Collections.emptyList());
         return booked.stream().anyMatch(l -> l.getDay() == day && overlaps(l, start, end));
     }
 
+    /**
+     * hasTeacherConflict.
+     * @param teacher parameter value.
+     * @param day parameter value.
+     * @param start parameter value.
+     * @param end parameter value.
+     * @return boolean
+     */
     private boolean hasTeacherConflict(Teacher teacher, DayOfWeek day, LocalTime start, LocalTime end) {
         List<Lesson> booked = teacherSchedule.getOrDefault(teacher.getUserId(), Collections.emptyList());
         return booked.stream().anyMatch(l -> l.getDay() == day && overlaps(l, start, end));
     }
 
+    /**
+     * overlaps.
+     * @param lesson parameter value.
+     * @param start parameter value.
+     * @param end parameter value.
+     * @return boolean
+     */
     private boolean overlaps(Lesson lesson, LocalTime start, LocalTime end) {
         return lesson.getStartTime().isBefore(end) && lesson.getEndTime().isAfter(start);
     }
 
+    /**
+     * printSchedule.
+     */
     public void printSchedule() {
         System.out.println("====== SCHEDULE " + semester + " " + academicYear + " ======");
         allLessons.stream()
@@ -76,6 +110,10 @@ public class Schedule implements Serializable {
         System.out.println("======================================");
     }
 
+    /**
+     * printRoomSchedule.
+     * @param room parameter value.
+     */
     public void printRoomSchedule(String room) {
         System.out.println("--- Room " + room + " schedule ---");
         roomSchedule.getOrDefault(room, Collections.emptyList()).stream()
@@ -83,6 +121,10 @@ public class Schedule implements Serializable {
                 .forEach(l -> System.out.println("  " + l));
     }
 
+    /**
+     * printTeacherSchedule.
+     * @param teacher parameter value.
+     */
     public void printTeacherSchedule(Teacher teacher) {
         System.out.println("--- Schedule for " + teacher.getFullName() + " ---");
         teacherSchedule.getOrDefault(teacher.getUserId(), Collections.emptyList()).stream()
@@ -90,7 +132,19 @@ public class Schedule implements Serializable {
                 .forEach(l -> System.out.println("  " + l));
     }
 
+    /**
+     * Gets the academic year.
+     * @return int
+     */
     public int getAcademicYear() { return academicYear; }
+    /**
+     * Gets the semester.
+     * @return Semester
+     */
     public Semester getSemester() { return semester; }
+    /**
+     * Gets the all lessons.
+     * @return List&lt;Lesson&gt;
+     */
     public List<Lesson> getAllLessons() { return Collections.unmodifiableList(allLessons); }
 }

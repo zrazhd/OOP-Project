@@ -25,6 +25,12 @@ public class EmployeeRequest implements Serializable {
     private Status status;
     private String managerResponse;
 
+    /**
+     * Constructor for EmployeeRequest.
+     * @param sender parameter value.
+     * @param type parameter value.
+     * @param description parameter value.
+     */
     public EmployeeRequest(Employee sender, RequestType type, String description) {
         this.id = ++counter;
         this.sender = sender;
@@ -34,18 +40,50 @@ public class EmployeeRequest implements Serializable {
         this.status = Status.PENDING;
     }
 
+    /**
+     * Gets the id.
+     * @return int
+     */
     public int getId()                  { return id; }
+    /**
+     * Gets the sender.
+     * @return Employee
+     */
     public Employee getSender()         { return sender; }
+    /**
+     * Gets the type.
+     * @return RequestType
+     */
     public RequestType getType()        { return type; }
+    /**
+     * Gets the description.
+     * @return String
+     */
     public String getDescription()      { return description; }
+    /**
+     * Gets the status.
+     * @return Status
+     */
     public Status getStatus()           { return status; }
+    /**
+     * Gets the created at.
+     * @return LocalDateTime
+     */
     public LocalDateTime getCreatedAt() { return createdAt; }
 
+    /**
+     * approve.
+     * @param response parameter value.
+     */
     public void approve(String response) {
         this.status = Status.APPROVED;
         this.managerResponse = response;
     }
 
+    /**
+     * reject.
+     * @param response parameter value.
+     */
     public void reject(String response) {
         this.status = Status.REJECTED;
         this.managerResponse = response;

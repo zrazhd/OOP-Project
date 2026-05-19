@@ -5,6 +5,9 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 
+/**
+ * Represents the official message in the system.
+ */
 public class OfficialMessage implements Serializable {
 
     private static int counter = 1;
@@ -39,14 +42,50 @@ public class OfficialMessage implements Serializable {
         this.recipientDepartment = recipientDepartment;
     }
 
+    /**
+     * Gets the message id.
+     * @return int
+     */
     public int getMessageId() { return messageId; }
+    /**
+     * Gets the subject.
+     * @return String
+     */
     public String getSubject() { return subject; }
+    /**
+     * Gets the body.
+     * @return String
+     */
     public String getBody() { return body; }
+    /**
+     * Gets the sender.
+     * @return Employee
+     */
     public Employee getSender() { return sender; }
+    /**
+     * Gets the recipient.
+     * @return Employee
+     */
     public Employee getRecipient() { return recipient; }
+    /**
+     * Gets the recipient department.
+     * @return String
+     */
     public String getRecipientDepartment() { return recipientDepartment; }
+    /**
+     * Gets the sent at.
+     * @return LocalDateTime
+     */
     public LocalDateTime getSentAt() { return sentAt; }
+    /**
+     * Checks if signed.
+     * @return boolean
+     */
     public boolean isSigned() { return signed; }
+    /**
+     * Gets the signatory title.
+     * @return String
+     */
     public String getSignatoryTitle() { return signatoryTitle; }
 
     @Override

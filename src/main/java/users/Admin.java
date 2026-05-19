@@ -6,6 +6,9 @@ import system.LogEntry;
 import java.time.LocalDateTime;
 import java.util.*;
 
+/**
+ * Represents the admin in the system.
+ */
 public class Admin extends Employee {
 
     private List<LogEntry> systemLogs;
@@ -16,6 +19,12 @@ public class Admin extends Employee {
         this.systemLogs = new ArrayList<>();
     }
 
+    /**
+     * registerUser.
+     * @param database parameter value.
+     * @param user parameter value.
+     * @return boolean
+     */
     public boolean registerUser(Database database, User user) {
         boolean added = database.addUser(user);
         if (added) {
@@ -27,6 +36,12 @@ public class Admin extends Employee {
         return added;
     }
 
+    /**
+     * registerCourse.
+     * @param database parameter value.
+     * @param course parameter value.
+     * @return boolean
+     */
     public boolean registerCourse(Database database, Course course) {
         boolean added = database.addCourse(course);
         if (added) {
@@ -39,12 +54,22 @@ public class Admin extends Employee {
     }
 
 
+    /**
+     * addUser.
+     * @param userList parameter value.
+     * @param user parameter value.
+     */
     public void addUser(List<User> userList, User user) {
         userList.add(user);
         log("ADD_USER", "Added: " + user.getFullName());
         System.out.println("[Admin] User added: " + user.getFullName());
     }
 
+    /**
+     * removeUser.
+     * @param userList parameter value.
+     * @param userId parameter value.
+     */
     public void removeUser(List<User> userList, String userId) {
         User found = findById(userList, userId);
         if (found != null) {
@@ -56,6 +81,12 @@ public class Admin extends Employee {
         }
     }
 
+    /**
+     * updateEmail.
+     * @param userList parameter value.
+     * @param userId parameter value.
+     * @param newEmail parameter value.
+     */
     public void updateEmail(List<User> userList, String userId, String newEmail) {
         User user = findById(userList, userId);
         if (user != null) {
@@ -68,6 +99,12 @@ public class Admin extends Employee {
         }
     }
 
+    /**
+     * resetPassword.
+     * @param userList parameter value.
+     * @param userId parameter value.
+     * @param newPassword parameter value.
+     */
     public void resetPassword(List<User> userList, String userId, String newPassword) {
         User user = findById(userList, userId);
         if (user != null) {
@@ -79,6 +116,12 @@ public class Admin extends Employee {
         }
     }
 
+    /**
+     * findById.
+     * @param userList parameter value.
+     * @param userId parameter value.
+     * @return User
+     */
     public User findById(List<User> userList, String userId) {
         for (User u : userList) {
             if (u.getUserId().equals(userId)) return u;
@@ -88,20 +131,37 @@ public class Admin extends Employee {
 
     // Logging 
 
+    /**
+     * log.
+     * @param action parameter value.
+     * @param details parameter value.
+     */
     public void log(String action, String details) {
         systemLogs.add(new LogEntry(getFullName(), action, details, LocalDateTime.now()));
     }
 
+    /**
+     * printAllLogs.
+     */
     public void printAllLogs() {
         System.out.println("====== SYSTEM LOGS (" + systemLogs.size() + ") ======");
         for (LogEntry e : systemLogs) System.out.println(e);
         System.out.println("======================================");
     }
 
+    /**
+     * Gets the logs.
+     * @return List&lt;LogEntry&gt;
+     */
     public List<LogEntry> getLogs() {
         return Collections.unmodifiableList(systemLogs);
     }
 
+    /**
+     * Gets the logs by action.
+     * @param action parameter value.
+     * @return List&lt;LogEntry&gt;
+     */
     public List<LogEntry> getLogsByAction(String action) {
         List<LogEntry> result = new ArrayList<>();
         for (LogEntry e : systemLogs) {

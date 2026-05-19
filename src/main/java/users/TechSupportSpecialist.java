@@ -5,6 +5,9 @@ import system.TechRequest;
 import java.util.*;
 
 
+/**
+ * Represents the tech support specialist in the system.
+ */
 public class TechSupportSpecialist extends Employee {
 
     private List<TechRequest> assignedRequests;
@@ -21,11 +24,19 @@ public class TechSupportSpecialist extends Employee {
     }
 
     
+    /**
+     * receiveRequest.
+     * @param request parameter value.
+     */
     public void receiveRequest(TechRequest request) {
         assignedRequests.add(request);
         System.out.println("[TechSupport] " + getFullName() + " received request: " + request.getTitle());
     }
 
+    /**
+     * viewNewRequests.
+     * @return List&lt;TechRequest&gt;
+     */
     public List<TechRequest> viewNewRequests() {
         List<TechRequest> newRequests = new ArrayList<>();
         for (TechRequest req : assignedRequests) {
@@ -39,10 +50,18 @@ public class TechSupportSpecialist extends Employee {
         return newRequests;
     }
 
+    /**
+     * viewAllRequests.
+     * @return List&lt;TechRequest&gt;
+     */
     public List<TechRequest> viewAllRequests() {
         return Collections.unmodifiableList(assignedRequests);
     }
 
+    /**
+     * acceptRequest.
+     * @param request parameter value.
+     */
     public void acceptRequest(TechRequest request) {
         if (!assignedRequests.contains(request)) {
             System.out.println("[TechSupport] Request not assigned to you.");
@@ -57,6 +76,11 @@ public class TechSupportSpecialist extends Employee {
         }
     }
 
+    /**
+     * rejectRequest.
+     * @param request parameter value.
+     * @param reason parameter value.
+     */
     public void rejectRequest(TechRequest request, String reason) {
         if (!assignedRequests.contains(request)) {
             System.out.println("[TechSupport] Request not assigned to you.");
@@ -68,6 +92,11 @@ public class TechSupportSpecialist extends Employee {
                 + " REJECTED by " + getFullName() + ". Reason: " + reason);
     }
 
+    /**
+     * markAsDone.
+     * @param request parameter value.
+     * @param resolutionNote parameter value.
+     */
     public void markAsDone(TechRequest request, String resolutionNote) {
         if (!assignedRequests.contains(request)) {
             System.out.println("[TechSupport] Request not assigned to you.");
@@ -85,6 +114,11 @@ public class TechSupportSpecialist extends Employee {
                 + " marked as DONE. Note: " + resolutionNote);
     }
 
+    /**
+     * viewRequestsByStatus.
+     * @param status parameter value.
+     * @return List&lt;TechRequest&gt;
+     */
     public List<TechRequest> viewRequestsByStatus(RequestStatus status) {
         List<TechRequest> result = new ArrayList<>();
         for (TechRequest req : assignedRequests) {
@@ -95,6 +129,9 @@ public class TechSupportSpecialist extends Employee {
         return result;
     }
 
+    /**
+     * printRequestSummary.
+     */
     public void printRequestSummary() {
         System.out.println("===== TECH REQUEST SUMMARY for " + getFullName() + " =====");
         System.out.println("Specialization: " + specialization);
@@ -107,9 +144,21 @@ public class TechSupportSpecialist extends Employee {
     }
 
     // Getters
+    /**
+     * Gets the specialization.
+     * @return String
+     */
     public String getSpecialization() { return specialization; }
     public void setSpecialization(String specialization) { this.specialization = specialization; }
+    /**
+     * Gets the assigned requests.
+     * @return List&lt;TechRequest&gt;
+     */
     public List<TechRequest> getAssignedRequests() { return assignedRequests; }
+    /**
+     * Gets the completed requests.
+     * @return List&lt;TechRequest&gt;
+     */
     public List<TechRequest> getCompletedRequests() { return completedRequests; }
 
     @Override

@@ -5,6 +5,9 @@ import enums.School;
 import research.*;
 import java.util.*;
 
+/**
+ * Represents the graduate student in the system.
+ */
 public class GraduateStudent extends Student implements Researcher {
 
     private Researcher researcherSupervisor;
@@ -24,6 +27,10 @@ public class GraduateStudent extends Student implements Researcher {
     }
 
 
+    /**
+     * Sets the supervisor.
+     * @param supervisor parameter value.
+     */
     public void setSupervisor(Researcher supervisor) throws InvalidSupervisorException {
         if (supervisor.calculateHIndex() < 3) {
             throw new InvalidSupervisorException(
@@ -33,11 +40,19 @@ public class GraduateStudent extends Student implements Researcher {
         this.researcherSupervisor = supervisor;
     }
 
+    /**
+     * Gets the supervisor.
+     * @return Researcher
+     */
     public Researcher getSupervisor() {
         return researcherSupervisor;
     }
 
 
+    /**
+     * addDiplomaProject.
+     * @param paper parameter value.
+     */
     public void addDiplomaProject(ResearchPaper paper) {
         if (!diplomaProjects.contains(paper)) {
             diplomaProjects.add(paper);
@@ -47,6 +62,10 @@ public class GraduateStudent extends Student implements Researcher {
         }
     }
 
+    /**
+     * Gets the diploma projects.
+     * @return List&lt;ResearchPaper&gt;
+     */
     public List<ResearchPaper> getDiplomaProjects() {
         return Collections.unmodifiableList(diplomaProjects);
     }
