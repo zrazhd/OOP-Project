@@ -39,7 +39,12 @@ public class Database {
     }
 
     public boolean addCourse(Course course) {
-        if (course == null || findCourseById(course.getCourseId()) != null) {
+        if (course == null) {
+            return false;
+        }
+
+        String courseId = course.getCourseId();
+        if (courseId == null || courseId.isBlank() || findCourseById(courseId) != null) {
             return false;
         }
         courses.add(course);
