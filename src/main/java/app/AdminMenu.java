@@ -1,19 +1,17 @@
 package app;
 
+import academics.Course;
 import enums.DegreeType;
+import enums.ManagerType;
 import enums.School;
 import enums.TeacherPosition;
+import system.Lang;
 import system.LogEntry;
 import users.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Console menu for Admin users.
- * Provides: user management (add/remove/update), log viewing.
- */
 public class AdminMenu {
 
     private final Admin admin;
@@ -28,234 +26,228 @@ public class AdminMenu {
 
     public void show() {
         while (true) {
-            System.out.println("\n========== ADMIN MENU ==========");
-            System.out.println("1. View all users");
-            System.out.println("2. Add user");
-            System.out.println("3. Remove user");
-            System.out.println("4. Update user email");
-            System.out.println("5. Reset user password");
-            System.out.println("6. Search user by ID");
-            System.out.println("7. View system logs");
-            System.out.println("8. Filter logs by action");
-            System.out.println("0. Logout");
-            System.out.println("=================================");
-            System.out.print("Choice: ");
+            Lang.header(Lang.get("admin_menu") + " — " + admin.getFullName());
+            Lang.menuItem(1, "admin_users");
+            Lang.menuItem(2, "admin_add");
+            Lang.menuItem(3, "admin_remove");
+            Lang.menuItem(4, "admin_update");
+            Lang.menuItem(5, "admin_reset");
+            Lang.menuItem(6, "admin_search");
+            Lang.menuItem(7, "admin_logs");
+            Lang.menuItem(8, "admin_filter");
+            Lang.menuItem(9, "admin_courses");
+            Lang.menuExit();
+            Lang.separator();
+            Lang.prompt();
 
-            switch (readInt()) {
+            int choice = readInt();
+            switch (choice) {
                 case 1 -> viewAllUsers();
                 case 2 -> addUser();
                 case 3 -> removeUser();
                 case 4 -> updateEmail();
                 case 5 -> resetPassword();
                 case 6 -> searchUser();
-                case 7 -> admin.printAllLogs();
-                case 8 -> filterLogs();
+                case 7 -> viewGlobalLogs();
+                case 8 -> filterLogsByAction();
+                case 9 -> viewAllCourses();
                 case 0 -> {
-                    admin.log("LOGOUT", admin.getFullName() + " logged out");
-                    System.out.println("Logged out.");
+                    Lang.info(Lang.get("logout") + "...");
                     return;
                 }
-                default -> System.out.println("Invalid option. Try again.");
+                default -> Lang.err(Lang.get("invalid"));
             }
         }
     }
-
-    // ─── 1. View all users ──────────────────────────────────────────────────────
 
     private void viewAllUsers() {
-        List<User> users = new ArrayList<>(database.getUsers());
+        List<User> users = database.getUsers();
         if (users.isEmpty()) {
-            System.out.println("No users in the system.");
+            Lang.info(Lang.get("empty"));
             return;
         }
-        System.out.println("\n--- All Users (" + users.size() + ") ---");
-        int i = 1;
+        System.out.println("\n--- " + Lang.get("admin_users") + " (" + users.size() + ") ---");
         for (User u : users) {
-            System.out.println(i++ + ". " + u);
+            System.out.println("  " + u);
         }
     }
-
-    // ─── 2. Add user ─────────────────────────────────────────────────────────────
 
     private void addUser() {
-        System.out.println("\n--- Add User ---");
-        System.out.println("Select type:");
-        System.out.println("1. Student");
-        System.out.println("2. Teacher");
-        System.out.println("3. Admin");
-        System.out.print("Choice: ");
+        System.out.println("\nSelect user type:");
+        System.out.println("1. Student\n2. Graduate Student\n3. Teacher\n4. Manager\n5. Tech Support\n6. Admin");
+        Lang.prompt();
         int type = readInt();
 
-        System.out.print("User ID: ");
-        String id = readLine();
-        System.out.print("First name: ");
-        String first = readLine();
-        System.out.print("Last name: ");
-        String last = readLine();
-        System.out.print("Email: ");
-        String email = readLine();
-        System.out.print("Password: ");
-        String password = readLine();
+        System.out.print("ID: "); String id = readLine();
+        if (database.findUserById(id) != null) {
+            Lang.err("User ID already exists.");
+            return;
+        }
+
+        System.out.print("First Name: "); String fn = readLine();
+        System.out.print("Last Name: "); String ln = readLine();
+        System.out.print("Email: "); String email = readLine();
+        System.out.print("Password: "); String pass = readLine();
 
         User newUser = null;
-
-        switch (type) {
-            case 1 -> {
-                System.out.print("Department/School (IT_AND_ENGINEERING / BUSINESS / SCIENCE): ");
-                School school = parseSchool(readLine());
-                System.out.print("Degree (BACHELOR / MASTER / PHD): ");
-                DegreeType degree = parseDegree(readLine());
-                System.out.print("Year of study: ");
-                int year = readInt();
-                if (degree == DegreeType.MASTER || degree == DegreeType.PHD) {
-                    newUser = new GraduateStudent(id, first, last, email, password, degree, school, year);
-                } else {
-                    newUser = new Student(id, first, last, email, password, degree, school, year);
+        try {
+            switch (type) {
+                case 1 -> {
+                    System.out.print("School (e.g. IT_AND_ENGINEERING, BUSINESS): ");
+                    School school = School.valueOf(readLine().toUpperCase());
+                    System.out.print("Year of study (1-4): ");
+                    int year = readInt();
+                    newUser = new Student(id, fn, ln, email, pass, DegreeType.BACHELOR, school, year);
                 }
+                case 2 -> {
+                    System.out.print("Degree (MASTER, PHD): ");
+                    DegreeType degree = DegreeType.valueOf(readLine().toUpperCase());
+                    System.out.print("School (e.g. IT_AND_ENGINEERING, BUSINESS): ");
+                    School school = School.valueOf(readLine().toUpperCase());
+                    System.out.print("Year of study (1-3): ");
+                    int year = readInt();
+                    newUser = new GraduateStudent(id, fn, ln, email, pass, degree, school, year);
+                }
+                case 3 -> {
+                    System.out.print("Department: ");
+                    String dept = readLine();
+                    System.out.print("Position (PROFESSOR, SENIOR_LECTURER, LECTURER, TUTOR): ");
+                    TeacherPosition pos = TeacherPosition.valueOf(readLine().toUpperCase());
+                    System.out.print("School: ");
+                    School school = School.valueOf(readLine().toUpperCase());
+                    newUser = new Teacher(id, fn, ln, email, pass, dept, pos, school);
+                }
+                case 4 -> {
+                    System.out.print("Department: ");
+                    String dept = readLine();
+                    System.out.print("Manager Type (OR, DEAN_OFFICE): ");
+                    ManagerType mType = ManagerType.valueOf(readLine().toUpperCase());
+                    newUser = new Manager(id, fn, ln, email, pass, dept, mType);
+                }
+                case 5 -> {
+                    System.out.print("Department: ");
+                    String dept = readLine();
+                    System.out.print("Specialization: ");
+                    String spec = readLine();
+                    newUser = new TechSupportSpecialist(id, fn, ln, email, pass, dept, spec);
+                }
+                case 6 -> {
+                    System.out.print("Department: ");
+                    String dept = readLine();
+                    newUser = new Admin(id, fn, ln, email, pass, dept);
+                }
+                default -> { Lang.err("Invalid user type."); return; }
             }
-            case 2 -> {
-                System.out.print("Department: ");
-                String dept = readLine();
-                System.out.print("Position (PROFESSOR / SENIOR_LECTURER / LECTURER / TUTOR): ");
-                TeacherPosition pos = parsePosition(readLine());
-                System.out.print("School (IT_AND_ENGINEERING / BUSINESS / SCIENCE): ");
-                School school = parseSchool(readLine());
-                newUser = new Teacher(id, first, last, email, password, dept, pos, school);
-            }
-            case 3 -> {
-                System.out.print("Department: ");
-                String dept = readLine();
-                newUser = new Admin(id, first, last, email, password, dept);
-            }
-            default -> {
-                System.out.println("Invalid type.");
-                return;
-            }
+        } catch (IllegalArgumentException e) {
+            Lang.err("Invalid enum value provided.");
+            return;
         }
 
-        // addUser in Admin logs internally
-        admin.addUser(new ArrayList<>(database.getUsers()), newUser);
-        // We also add directly to the database (Admin.addUser operates on the passed list,
-        // so we add to the source-of-truth as well)
-        database.addUser(newUser);
-        admin.log("ADD_USER_DB", "Persisted user " + newUser.getUserId() + " to database");
+        if (database.addUser(newUser)) {
+            database.log(admin.getFullName(), "ADD_USER", "Added user " + id + " (" + fn + " " + ln + ")");
+            Lang.ok(Lang.get("success"));
+        } else {
+            Lang.err("Failed to add user.");
+        }
     }
-
-    // ─── 3. Remove user ──────────────────────────────────────────────────────────
 
     private void removeUser() {
-        System.out.print("\nEnter user ID to remove: ");
+        System.out.print("Enter ID of user to remove: ");
         String userId = readLine();
-        // We work on a mutable copy and mirror changes
-        List<User> mutableUsers = new ArrayList<>(database.getUsers());
-        User found = admin.findById(mutableUsers, userId);
+        User found = database.findUserById(userId);
         if (found == null) {
-            System.out.println("User not found: " + userId);
+            Lang.err(Lang.get("not_found"));
             return;
         }
-        System.out.print("Confirm removal of " + found.getFullName() + "? (yes/no): ");
-        if (!readLine().equalsIgnoreCase("yes")) {
-            System.out.println("Cancelled.");
+        System.out.print(Lang.get("confirm") + " ");
+        if (!readLine().equalsIgnoreCase(Lang.get("yes"))) {
+            Lang.info(Lang.get("cancel"));
             return;
         }
-        database.removeUser(userId);
-        admin.log("REMOVE_USER", "Removed user " + userId + " (" + found.getFullName() + ")");
-        System.out.println("User removed successfully.");
+        if (database.removeUser(userId)) {
+            database.log(admin.getFullName(), "REMOVE_USER", "Removed user " + userId + " (" + found.getFullName() + ")");
+            Lang.ok(Lang.get("success"));
+        }
     }
-
-    // ─── 4. Update email ─────────────────────────────────────────────────────────
 
     private void updateEmail() {
-        System.out.print("\nEnter user ID: ");
+        System.out.print("Enter User ID: ");
         String userId = readLine();
-        User user = findUserInDb(userId);
-        if (user == null) return;
-
-        System.out.println("Current email: " + user.getEmail());
-        System.out.print("New email: ");
+        User found = database.findUserById(userId);
+        if (found == null) {
+            Lang.err(Lang.get("not_found"));
+            return;
+        }
+        System.out.print("New Email: ");
         String newEmail = readLine();
-
-        List<User> mutableUsers = new ArrayList<>(database.getUsers());
-        admin.updateEmail(mutableUsers, userId, newEmail);
-        // reflect on the actual object (already mutated via reference)
-        admin.log("UPDATE_EMAIL_CONFIRMED", userId + " → " + newEmail);
+        String oldEmail = found.getEmail();
+        found.setEmail(newEmail);
+        database.log(admin.getFullName(), "UPDATE_EMAIL", "User " + userId + ": " + oldEmail + " -> " + newEmail);
+        Lang.ok(Lang.get("success"));
     }
-
-    // ─── 5. Reset password ───────────────────────────────────────────────────────
 
     private void resetPassword() {
-        System.out.print("\nEnter user ID: ");
+        System.out.print("Enter User ID: ");
         String userId = readLine();
-        User user = findUserInDb(userId);
-        if (user == null) return;
-
-        System.out.print("New password: ");
+        User found = database.findUserById(userId);
+        if (found == null) {
+            Lang.err(Lang.get("not_found"));
+            return;
+        }
+        System.out.print("New Password: ");
         String newPass = readLine();
-
-        List<User> mutableUsers = new ArrayList<>(database.getUsers());
-        admin.resetPassword(mutableUsers, userId, newPass);
+        found.setPassword(newPass);
+        database.log(admin.getFullName(), "RESET_PASSWORD", "Reset password for " + userId);
+        Lang.ok(Lang.get("success"));
     }
-
-    // ─── 6. Search user ──────────────────────────────────────────────────────────
 
     private void searchUser() {
-        System.out.print("\nEnter user ID: ");
+        System.out.print("Enter User ID: ");
         String userId = readLine();
-        User user = findUserInDb(userId);
-        if (user != null) {
-            System.out.println("\nFound:");
-            System.out.println(user);
-        }
-    }
-
-    // ─── 8. Filter logs ──────────────────────────────────────────────────────────
-
-    private void filterLogs() {
-        System.out.println("Available actions: ADD_USER, REMOVE_USER, UPDATE_EMAIL, RESET_PASSWORD, LOGOUT");
-        System.out.print("Enter action to filter: ");
-        String action = readLine();
-        List<LogEntry> filtered = admin.getLogsByAction(action);
-        if (filtered.isEmpty()) {
-            System.out.println("No logs for action: " + action);
+        User found = database.findUserById(userId);
+        if (found != null) {
+            System.out.println("  " + found);
         } else {
-            filtered.forEach(System.out::println);
+            Lang.err(Lang.get("not_found"));
         }
     }
 
-    // ─── helpers ─────────────────────────────────────────────────────────────────
-
-    private User findUserInDb(String userId) {
-        for (User u : database.getUsers()) {
-            if (u.getUserId().equals(userId)) return u;
+    private void viewGlobalLogs() {
+        List<LogEntry> logs = database.getLogs();
+        if (logs.isEmpty()) {
+            Lang.info(Lang.get("empty"));
+            return;
         }
-        System.out.println("User not found: " + userId);
-        return null;
-    }
-
-    private School parseSchool(String input) {
-        try {
-            return School.valueOf(input.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            System.out.println("Unknown school, defaulting to IT_AND_ENGINEERING.");
-            return School.IT_AND_ENGINEERING;
+        System.out.println("\n=== SYSTEM LOGS (" + logs.size() + ") ===");
+        for (LogEntry e : logs) {
+            System.out.println("  " + e);
         }
     }
 
-    private DegreeType parseDegree(String input) {
-        try {
-            return DegreeType.valueOf(input.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            System.out.println("Unknown degree, defaulting to BACHELOR.");
-            return DegreeType.BACHELOR;
+    private void filterLogsByAction() {
+        System.out.print("Action to filter (e.g. LOGIN, ADD_USER): ");
+        String action = readLine().toUpperCase();
+        List<LogEntry> logs = database.getLogs();
+        long count = 0;
+        System.out.println("\n=== SYSTEM LOGS: " + action + " ===");
+        for (LogEntry e : logs) {
+            if (e.getAction().equalsIgnoreCase(action)) {
+                System.out.println("  " + e);
+                count++;
+            }
         }
+        if (count == 0) Lang.info(Lang.get("empty"));
     }
 
-    private TeacherPosition parsePosition(String input) {
-        try {
-            return TeacherPosition.valueOf(input.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            System.out.println("Unknown position, defaulting to LECTURER.");
-            return TeacherPosition.LECTURER;
+    private void viewAllCourses() {
+        List<Course> courses = database.getCourses();
+        if (courses.isEmpty()) {
+            Lang.info(Lang.get("empty"));
+            return;
+        }
+        System.out.println("\n--- COURSES (" + courses.size() + ") ---");
+        for (Course c : courses) {
+            System.out.println("  " + c);
         }
     }
 

@@ -1,6 +1,7 @@
 package app;
 
 import enums.RequestStatus;
+import system.Lang;
 import system.TechRequest;
 import users.Employee;
 import users.Message;
@@ -9,11 +10,6 @@ import users.TechSupportSpecialist;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Console menu for TechSupportSpecialist users.
- * Covers: viewing new/all requests, accepting, rejecting, marking as done,
- * filtering by status, summary dashboard, and messaging.
- */
 public class TechSupportMenu {
 
     private final TechSupportSpecialist specialist;
@@ -28,19 +24,19 @@ public class TechSupportMenu {
 
     public void show() {
         while (true) {
-            System.out.println("\n====== TECH SUPPORT MENU (" + specialist.getFullName() + ") ======");
-            System.out.println("1. View NEW requests (marks them as VIEWED)");
-            System.out.println("2. View ALL assigned requests");
-            System.out.println("3. Accept a request");
-            System.out.println("4. Reject a request");
-            System.out.println("5. Mark request as DONE");
-            System.out.println("6. Filter requests by status");
-            System.out.println("7. My summary dashboard");
-            System.out.println("8. Send message to employee");
-            System.out.println("9. View inbox");
-            System.out.println("0. Logout");
-            System.out.println("==========================================");
-            System.out.print("Choice: ");
+            Lang.header(Lang.get("tech_menu") + " — " + specialist.getFullName());
+            Lang.menuItem(1, "tech_new");
+            Lang.menuItem(2, "tech_all");
+            Lang.menuItem(3, "tech_accept");
+            Lang.menuItem(4, "tech_reject");
+            Lang.menuItem(5, "tech_done");
+            Lang.menuItem(6, "tech_filter");
+            Lang.menuItem(7, "tech_summary");
+            Lang.menuItem(8, "mgr_send_msg");
+            Lang.menuItem(9, "mgr_inbox");
+            Lang.menuExit();
+            Lang.separator();
+            Lang.prompt();
 
             switch (readInt()) {
                 case 1 -> viewNewRequests();
@@ -52,184 +48,95 @@ public class TechSupportMenu {
                 case 7 -> specialist.printRequestSummary();
                 case 8 -> sendMessage();
                 case 9 -> viewInbox();
-                case 0 -> {
-                    System.out.println("Logging out...");
-                    return;
-                }
-                default -> System.out.println("Invalid option. Try again.");
+                case 0 -> { return; }
+                default -> Lang.err(Lang.get("invalid"));
             }
         }
     }
 
-    // ─── 1. View NEW requests ────────────────────────────────────────────────────
-
     private void viewNewRequests() {
         List<TechRequest> newReqs = specialist.viewNewRequests();
-        if (newReqs.isEmpty()) {
-            System.out.println("No new requests.");
-        } else {
-            System.out.println("\n--- New Requests (now marked VIEWED) ---");
-            printRequests(newReqs);
-        }
+        if (newReqs.isEmpty()) Lang.info(Lang.get("empty"));
+        else newReqs.forEach(r -> System.out.println("  " + r));
+        database.log(specialist.getFullName(), "TECH_VIEW_NEW", "Viewed new requests");
     }
-
-    // ─── 2. View ALL requests ─────────────────────────────────────────────────────
 
     private void viewAllRequests() {
         List<TechRequest> all = specialist.viewAllRequests();
-        if (all.isEmpty()) {
-            System.out.println("No requests assigned to you.");
-            return;
-        }
-        System.out.println("\n--- All Assigned Requests ---");
-        printNumberedRequests(all);
+        if (all.isEmpty()) Lang.info(Lang.get("empty"));
+        else printNumberedRequests(all);
     }
-
-    // ─── 3. Accept ───────────────────────────────────────────────────────────────
 
     private void acceptRequest() {
-        List<TechRequest> all = specialist.viewAllRequests();
-        if (all.isEmpty()) {
-            System.out.println("No requests assigned.");
-            return;
-        }
-        TechRequest req = pickRequest(all, "accept");
+        TechRequest req = pickRequest(specialist.viewAllRequests(), "accept");
         if (req != null) {
             specialist.acceptRequest(req);
+            database.log(specialist.getFullName(), "TECH_ACCEPT", "Accepted request #" + req.getRequestId());
+            Lang.ok(Lang.get("success"));
         }
     }
-
-    // ─── 4. Reject ───────────────────────────────────────────────────────────────
 
     private void rejectRequest() {
-        List<TechRequest> all = specialist.viewAllRequests();
-        if (all.isEmpty()) {
-            System.out.println("No requests assigned.");
-            return;
-        }
-        TechRequest req = pickRequest(all, "reject");
+        TechRequest req = pickRequest(specialist.viewAllRequests(), "reject");
         if (req != null) {
-            System.out.print("Rejection reason: ");
-            String reason = readLine();
-            specialist.rejectRequest(req, reason);
+            System.out.print("Reason: ");
+            specialist.rejectRequest(req, scanner.nextLine().trim());
+            database.log(specialist.getFullName(), "TECH_REJECT", "Rejected request #" + req.getRequestId());
+            Lang.ok(Lang.get("success"));
         }
     }
-
-    // ─── 5. Mark DONE ────────────────────────────────────────────────────────────
 
     private void markDone() {
         List<TechRequest> accepted = specialist.viewRequestsByStatus(RequestStatus.ACCEPTED);
-        if (accepted.isEmpty()) {
-            System.out.println("No ACCEPTED requests to mark as done.");
-            return;
+        TechRequest req = pickRequest(accepted, "mark DONE");
+        if (req != null) {
+            System.out.print("Resolution note: ");
+            specialist.markAsDone(req, scanner.nextLine().trim());
+            database.log(specialist.getFullName(), "TECH_DONE", "Finished request #" + req.getRequestId());
+            Lang.ok(Lang.get("success"));
         }
-        System.out.println("\n--- ACCEPTED Requests ---");
-        printNumberedRequests(accepted);
-        System.out.print("Enter number to mark as DONE: ");
-        int idx = readInt();
-        if (idx < 1 || idx > accepted.size()) {
-            System.out.println("Invalid selection.");
-            return;
-        }
-        System.out.print("Resolution note: ");
-        String note = readLine();
-        specialist.markAsDone(accepted.get(idx - 1), note);
     }
-
-    // ─── 6. Filter by status ─────────────────────────────────────────────────────
 
     private void filterByStatus() {
-        System.out.println("\nAvailable statuses: NEW, VIEWED, ACCEPTED, REJECTED, DONE");
-        System.out.print("Enter status: ");
-        RequestStatus status;
+        System.out.print("Status (NEW, VIEWED, ACCEPTED, REJECTED, DONE): ");
         try {
-            status = RequestStatus.valueOf(readLine().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            System.out.println("Unknown status.");
-            return;
-        }
-        List<TechRequest> filtered = specialist.viewRequestsByStatus(status);
-        if (filtered.isEmpty()) {
-            System.out.println("No requests with status: " + status);
-        } else {
-            System.out.println("\n--- Requests with status " + status + " ---");
-            printRequests(filtered);
-        }
+            RequestStatus s = RequestStatus.valueOf(scanner.nextLine().trim().toUpperCase());
+            List<TechRequest> filtered = specialist.viewRequestsByStatus(s);
+            if (filtered.isEmpty()) Lang.info(Lang.get("empty"));
+            else filtered.forEach(r -> System.out.println("  " + r));
+        } catch (Exception e) { Lang.err("Invalid status."); }
     }
-
-    // ─── 8. Send message ─────────────────────────────────────────────────────────
 
     private void sendMessage() {
-        List<Employee> employees = database.getEmployees();
-        if (employees.isEmpty()) {
-            System.out.println("No employees.");
-            return;
-        }
-        System.out.println("\n--- Employees ---");
-        for (int i = 0; i < employees.size(); i++) {
-            Employee e = employees.get(i);
-            System.out.println((i + 1) + ". " + e.getFullName() + " (" + e.getClass().getSimpleName() + ")");
-        }
-        System.out.print("Select employee: ");
+        List<Employee> emps = database.getEmployees();
+        for (int i = 0; i < emps.size(); i++) System.out.println((i + 1) + ". " + emps.get(i).getFullName());
+        System.out.print(Lang.get("select") + ": ");
         int idx = readInt() - 1;
-        if (idx < 0 || idx >= employees.size()) {
-            System.out.println("Invalid.");
-            return;
-        }
-        System.out.print("Message: ");
-        String text = readLine();
-        specialist.sendMessage(employees.get(idx), text);
-        System.out.println("Message sent.");
+        if (idx >= 0 && idx < emps.size()) {
+            System.out.print(Lang.get("message") + ": ");
+            specialist.sendMessage(emps.get(idx), scanner.nextLine().trim());
+            database.log(specialist.getFullName(), "SEND_MSG", "Sent message to " + emps.get(idx).getFullName());
+            Lang.ok(Lang.get("sent"));
+        } else Lang.err(Lang.get("invalid"));
     }
-
-    // ─── 9. View inbox ───────────────────────────────────────────────────────────
 
     private void viewInbox() {
         List<Message> inbox = specialist.getInbox();
-        if (inbox.isEmpty()) {
-            System.out.println("Inbox is empty.");
-            return;
-        }
-        System.out.println("\n=== Inbox (" + inbox.size() + " messages) ===");
-        for (Message msg : inbox) {
-            System.out.println("  " + msg);
-        }
+        if (inbox.isEmpty()) Lang.info(Lang.get("empty"));
+        else inbox.forEach(m -> System.out.println("  " + m));
     }
-
-    // ─── helpers ─────────────────────────────────────────────────────────────────
 
     private TechRequest pickRequest(List<TechRequest> requests, String action) {
+        if (requests.isEmpty()) { Lang.info(Lang.get("empty")); return null; }
         printNumberedRequests(requests);
-        System.out.print("Enter number to " + action + ": ");
-        int idx = readInt();
-        if (idx < 1 || idx > requests.size()) {
-            System.out.println("Invalid selection.");
-            return null;
-        }
-        return requests.get(idx - 1);
-    }
-
-    private void printRequests(List<TechRequest> requests) {
-        for (TechRequest r : requests) {
-            System.out.println("  " + r);
-        }
+        System.out.print("Select number to " + action + ": ");
+        int idx = readInt() - 1;
+        if (idx >= 0 && idx < requests.size()) return requests.get(idx);
+        Lang.err(Lang.get("invalid")); return null;
     }
 
     private void printNumberedRequests(List<TechRequest> requests) {
-        for (int i = 0; i < requests.size(); i++) {
-            System.out.println((i + 1) + ". " + requests.get(i));
-        }
+        for (int i = 0; i < requests.size(); i++) System.out.println((i + 1) + ". " + requests.get(i));
     }
-
-    private String readLine() {
-        return scanner.nextLine().trim();
-    }
-
-    private int readInt() {
-        try {
-            return Integer.parseInt(scanner.nextLine().trim());
-        } catch (NumberFormatException e) {
-            return -1;
-        }
-    }
+    private int readInt() { try { return Integer.parseInt(scanner.nextLine().trim()); } catch (Exception e) { return -1; } }
 }

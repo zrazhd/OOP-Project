@@ -6,6 +6,9 @@ import research.ResearchPaper;
 import research.Researcher;
 import system.News;
 import system.TechRequest;
+import system.RegistrationRequest;
+import system.EmployeeRequest;
+import system.LogEntry;
 import users.*;
 
 import java.io.*;
@@ -28,6 +31,10 @@ public class Database implements Serializable {
     private final List<TechRequest> techRequests = new ArrayList<>();
     private final List<Complaint> complaints = new ArrayList<>();
     private final List<ResearchJournal> journals = new ArrayList<>();
+    private final List<RegistrationRequest> registrationRequests = new ArrayList<>();
+    private final List<EmployeeRequest> employeeRequests = new ArrayList<>();
+    private final List<StudentOrganization> organizations = new ArrayList<>();
+    private final List<LogEntry> logs = new ArrayList<>();
 
     private Database() {
     }
@@ -181,6 +188,28 @@ public class Database implements Serializable {
     public List<ResearchJournal> getJournals() {
         return Collections.unmodifiableList(journals);
     }
+
+    // ─── Registration Requests ───────────────────────────────────────────────────
+    public void addRegistrationRequest(RegistrationRequest req) { registrationRequests.add(req); }
+    public List<RegistrationRequest> getRegistrationRequests() { return Collections.unmodifiableList(registrationRequests); }
+
+    // ─── Employee Requests ───────────────────────────────────────────────────────
+    public void addEmployeeRequest(EmployeeRequest req) { employeeRequests.add(req); }
+    public List<EmployeeRequest> getEmployeeRequests() { return Collections.unmodifiableList(employeeRequests); }
+
+    // ─── Student Organizations ───────────────────────────────────────────────────
+    public void addOrganization(StudentOrganization org) { organizations.add(org); }
+    public List<StudentOrganization> getOrganizations() { return Collections.unmodifiableList(organizations); }
+    public StudentOrganization findOrganizationByName(String name) {
+        return organizations.stream().filter(o -> o.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
+    }
+
+    // ─── System Logs ─────────────────────────────────────────────────────────────
+    public void addLog(LogEntry log) { logs.add(log); }
+    public void log(String actorName, String action, String details) {
+        logs.add(new LogEntry(actorName, action, details, java.time.LocalDateTime.now()));
+    }
+    public List<LogEntry> getLogs() { return Collections.unmodifiableList(logs); }
 
     // ─── Filtered queries ────────────────────────────────────────────────────────
 

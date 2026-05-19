@@ -3,6 +3,7 @@ package app;
 import enums.CitationFormat;
 import enums.NewsType;
 import research.*;
+import system.Lang;
 import system.News;
 import users.GraduateStudent;
 import users.Teacher;
@@ -13,22 +14,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Shared researcher sub-menu, callable from both Teacher and GraduateStudent menus.
- * Demonstrates the Researcher interface and Observer pattern (journal subscriptions).
- *
- * Usage:
- *   new ResearcherMenu(teacher, database, scanner).show();
- *   new ResearcherMenu(gradStudent, database, scanner).show();
- */
 public class ResearcherMenu {
 
-    private final Researcher researcher;   // the logged-in user as Researcher
-    private final String ownerName;        // for display
+    private final Researcher researcher;
+    private final String ownerName;
     private final Database database;
     private final Scanner scanner;
 
-    /** Constructor for a Teacher who is also a Researcher. */
     public ResearcherMenu(Teacher teacher, Database database, Scanner scanner) {
         this.researcher  = teacher;
         this.ownerName   = teacher.getFullName();
@@ -36,7 +28,6 @@ public class ResearcherMenu {
         this.scanner     = scanner;
     }
 
-    /** Constructor for a GraduateStudent who is always a Researcher. */
     public ResearcherMenu(GraduateStudent gs, Database database, Scanner scanner) {
         this.researcher  = gs;
         this.ownerName   = gs.getFullName();
@@ -46,31 +37,30 @@ public class ResearcherMenu {
 
     public void show() {
         while (true) {
-            System.out.println("\n=== RESEARCHER MENU — " + ownerName + " ===");
-            System.out.println("1.  Add research paper");
-            System.out.println("2.  View my papers (sorted)");
-            System.out.println("3.  Get citation for a paper");
-            System.out.println("4.  My h-index");
-            System.out.println("5.  Join research project");
-            System.out.println("6.  View my research projects");
-            System.out.println("7.  Add paper to a project");
-            System.out.println("8.  View ALL university papers (sorted)");
-            System.out.println("9.  Top cited researchers in university");
-            System.out.println("10. Publish paper to journal");
-            System.out.println("11. Subscribe to research journal");
-            System.out.println("12. View research journals");
+            Lang.header(Lang.get("res_menu") + " — " + ownerName);
+            Lang.menuItem(1, "res_add");
+            Lang.menuItem(2, "res_view");
+            Lang.menuItem(3, "res_cite");
+            Lang.menuItem(4, "res_hindex");
+            Lang.menuItem(5, "res_join");
+            Lang.menuItem(6, "res_projects");
+            Lang.menuItem(7, "Add paper to a project", true);
+            Lang.menuItem(8, "res_all_papers");
+            Lang.menuItem(9, "res_top");
+            Lang.menuItem(10, "res_publish");
+            Lang.menuItem(11, "res_subscribe");
+            Lang.menuItem(12, "stu_journals");
             if (researcher instanceof GraduateStudent) {
-                System.out.println("--- Graduate Student ---");
-                System.out.println("13. Add diploma project");
-                System.out.println("14. View diploma projects");
-                System.out.println("15. Set supervisor");
+                System.out.println("\n  --- Graduate Student ---");
+                Lang.menuItem(13, "Add diploma project", true);
+                Lang.menuItem(14, "View diploma projects", true);
+                Lang.menuItem(15, "Set supervisor", true);
             }
-            System.out.println("0.  Back");
-            System.out.println("=========================================");
-            System.out.print("Choice: ");
+            Lang.menuBack();
+            Lang.separator();
+            Lang.prompt();
 
-            int choice = readInt();
-            switch (choice) {
+            switch (readInt()) {
                 case 1  -> addPaper();
                 case 2  -> viewMyPapersSorted();
                 case 3  -> getCitation();
@@ -83,323 +73,183 @@ public class ResearcherMenu {
                 case 10 -> publishToJournal();
                 case 11 -> subscribeToJournal();
                 case 12 -> viewJournals();
-                case 13 -> { if (researcher instanceof GraduateStudent gs) addDiplomaProject(gs); else back(); }
-                case 14 -> { if (researcher instanceof GraduateStudent gs) viewDiplomaProjects(gs); else back(); }
-                case 15 -> { if (researcher instanceof GraduateStudent gs) setSupervisor(gs); else back(); }
+                case 13 -> { if (researcher instanceof GraduateStudent gs) addDiplomaProject(gs); else Lang.err(Lang.get("invalid")); }
+                case 14 -> { if (researcher instanceof GraduateStudent gs) viewDiplomaProjects(gs); else Lang.err(Lang.get("invalid")); }
+                case 15 -> { if (researcher instanceof GraduateStudent gs) setSupervisor(gs); else Lang.err(Lang.get("invalid")); }
                 case 0  -> { return; }
-                default -> System.out.println("Invalid option.");
+                default -> Lang.err(Lang.get("invalid"));
             }
         }
     }
 
-    // ─── 1. Add paper ────────────────────────────────────────────────────────────
-
     private void addPaper() {
-        System.out.print("Title: ");
-        String title = readLine();
-        System.out.print("Journal: ");
-        String journal = readLine();
-        System.out.print("Number of pages: ");
-        int pages = readInt();
-        System.out.print("Year (e.g. 2024): ");
-        int year = readInt();
-        System.out.print("Month (1-12): ");
-        int month = readInt();
-        System.out.print("Citations: ");
-        int citations = readInt();
-        System.out.print("DOI (leave blank to auto-generate): ");
-        String doi = readLine();
-        if (doi.isEmpty()) {
-            doi = title.toLowerCase().replace(' ', '-') + "-" + year;
-        }
+        System.out.print(Lang.get("title") + ": "); String title = scanner.nextLine().trim();
+        System.out.print("Journal: "); String journal = scanner.nextLine().trim();
+        System.out.print("Number of pages: "); int pages = readInt();
+        System.out.print("Year (e.g. 2024): "); int year = readInt();
+        System.out.print("Month (1-12): "); int month = readInt();
+        System.out.print("Citations: "); int citations = readInt();
+        System.out.print("DOI (leave blank to auto-generate): "); String doi = scanner.nextLine().trim();
+        if (doi.isEmpty()) doi = title.toLowerCase().replace(' ', '-') + "-" + year;
 
-        ResearchPaper paper = new ResearchPaper(
-                title,
-                List.of(ownerName),
-                journal,
-                pages,
-                LocalDate.of(year, Math.max(1, Math.min(12, month)), 1),
-                doi,
-                citations
-        );
+        ResearchPaper paper = new ResearchPaper(title, List.of(ownerName), journal, pages, LocalDate.of(year, Math.max(1, Math.min(12, month)), 1), doi, citations);
         researcher.addResearchPaper(paper);
-        System.out.println("Paper added: " + paper);
+        database.log(ownerName, "ADD_PAPER", "Added paper: " + title);
+        Lang.ok("Paper added: " + paper);
     }
-
-    // ─── 2. View my papers sorted ────────────────────────────────────────────────
 
     private void viewMyPapersSorted() {
-        if (researcher.getResearchPapers().isEmpty()) {
-            System.out.println("You have no research papers yet.");
-            return;
-        }
-        Comparator<ResearchPaper> comp = pickComparator();
-        researcher.printPapers(comp);
+        if (researcher.getResearchPapers().isEmpty()) { Lang.info(Lang.get("empty")); return; }
+        researcher.printPapers(pickComparator());
     }
-
-    // ─── 3. Get citation ─────────────────────────────────────────────────────────
 
     private void getCitation() {
         List<ResearchPaper> papers = researcher.getResearchPapers();
-        if (papers.isEmpty()) {
-            System.out.println("No papers.");
-            return;
-        }
+        if (papers.isEmpty()) { Lang.info(Lang.get("empty")); return; }
         printNumberedPapers(papers);
-        System.out.print("Select paper number: ");
-        int idx = readInt();
-        if (idx < 1 || idx > papers.size()) { System.out.println("Invalid."); return; }
+        System.out.print(Lang.get("select") + ": ");
+        int idx = readInt() - 1;
+        if (idx < 0 || idx >= papers.size()) { Lang.err(Lang.get("invalid")); return; }
 
         System.out.println("Format: 1=Plain Text  2=BibTeX");
-        System.out.print("Choice: ");
+        System.out.print(Lang.get("choice") + ": ");
         CitationFormat fmt = readInt() == 2 ? CitationFormat.BIBTEX : CitationFormat.PLAIN_TEXT;
-        System.out.println("\n" + papers.get(idx - 1).getCitation(fmt));
+        System.out.println("\n" + papers.get(idx).getCitation(fmt));
     }
-
-    // ─── 4. h-index ──────────────────────────────────────────────────────────────
 
     private void printHIndex() {
-        System.out.println("Your h-index: " + researcher.calculateHIndex());
+        System.out.println(Lang.get("res_hindex") + ": " + researcher.calculateHIndex());
     }
-
-    // ─── 5. Join project ─────────────────────────────────────────────────────────
 
     private void joinProject() {
-        System.out.print("Project topic: ");
-        String topic = readLine();
-        ResearchProject project = new ResearchProject(topic);
+        System.out.print("Project topic: "); String topic = scanner.nextLine().trim();
         try {
-            researcher.joinResearchProject(project);
-            System.out.println("Joined project: " + topic);
-        } catch (NotResearcherException e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+            researcher.joinResearchProject(new ResearchProject(topic));
+            database.log(ownerName, "JOIN_PROJECT", "Joined project: " + topic);
+            Lang.ok(Lang.get("success"));
+        } catch (NotResearcherException e) { Lang.err(e.getMessage()); }
     }
-
-    // ─── 6. View my projects ─────────────────────────────────────────────────────
 
     private void viewMyProjects() {
         List<ResearchProject> projects = researcher.getResearchProjects();
-        if (projects.isEmpty()) {
-            System.out.println("No research projects.");
-            return;
-        }
-        System.out.println("\n--- My Research Projects ---");
-        for (int i = 0; i < projects.size(); i++) {
-            System.out.println((i + 1) + ". " + projects.get(i));
-        }
+        if (projects.isEmpty()) { Lang.info(Lang.get("empty")); return; }
+        for (int i = 0; i < projects.size(); i++) System.out.println((i + 1) + ". " + projects.get(i));
     }
-
-    // ─── 7. Add paper to project ─────────────────────────────────────────────────
 
     private void addPaperToProject() {
         List<ResearchProject> projects = researcher.getResearchProjects();
-        if (projects.isEmpty()) { System.out.println("No projects."); return; }
-
-        System.out.println("--- My Projects ---");
-        for (int i = 0; i < projects.size(); i++) {
-            System.out.println((i + 1) + ". " + projects.get(i).getTopic());
-        }
-        System.out.print("Select project: ");
-        int pIdx = readInt();
-        if (pIdx < 1 || pIdx > projects.size()) { System.out.println("Invalid."); return; }
+        if (projects.isEmpty()) { Lang.info(Lang.get("empty")); return; }
+        for (int i = 0; i < projects.size(); i++) System.out.println((i + 1) + ". " + projects.get(i).getTopic());
+        System.out.print("Select project: "); int pIdx = readInt() - 1;
+        if (pIdx < 0 || pIdx >= projects.size()) { Lang.err(Lang.get("invalid")); return; }
 
         List<ResearchPaper> papers = researcher.getResearchPapers();
-        if (papers.isEmpty()) { System.out.println("No papers to add."); return; }
-
+        if (papers.isEmpty()) { Lang.info(Lang.get("empty")); return; }
         printNumberedPapers(papers);
-        System.out.print("Select paper: ");
-        int paperIdx = readInt();
-        if (paperIdx < 1 || paperIdx > papers.size()) { System.out.println("Invalid."); return; }
+        System.out.print("Select paper: "); int paperIdx = readInt() - 1;
+        if (paperIdx < 0 || paperIdx >= papers.size()) { Lang.err(Lang.get("invalid")); return; }
 
-        projects.get(pIdx - 1).addPaper(papers.get(paperIdx - 1));
-        System.out.println("Paper added to project.");
+        projects.get(pIdx).addPaper(papers.get(paperIdx));
+        database.log(ownerName, "PROJECT_ADD_PAPER", "Added paper to project " + projects.get(pIdx).getTopic());
+        Lang.ok(Lang.get("success"));
     }
-
-    // ─── 8. All university papers ────────────────────────────────────────────────
 
     private void viewAllUniversityPapers() {
         List<ResearchPaper> all = database.getAllResearchPapers();
-        if (all.isEmpty()) { System.out.println("No research papers in the university."); return; }
-
-        Comparator<ResearchPaper> comp = pickComparator();
-        all.sort(comp);
-
+        if (all.isEmpty()) { Lang.info(Lang.get("empty")); return; }
+        all.sort(pickComparator());
         System.out.println("\n=== All University Research Papers ===");
-        for (ResearchPaper p : all) {
-            System.out.println("  " + p);
-        }
+        all.forEach(p -> System.out.println("  " + p));
     }
-
-    // ─── 9. Top cited researchers ────────────────────────────────────────────────
 
     private void topCitedResearchers() {
         List<Researcher> researchers = database.getAllResearchers();
-        if (researchers.isEmpty()) { System.out.println("No researchers found."); return; }
-
+        if (researchers.isEmpty()) { Lang.info(Lang.get("empty")); return; }
         researchers.sort(Comparator.comparingInt(Researcher::calculateHIndex).reversed());
-
         System.out.println("\n=== Top Cited Researchers (by h-index) ===");
         int rank = 1;
         for (Researcher r : researchers) {
             String name = (r instanceof User u) ? u.getFullName() : r.toString();
-            System.out.printf("%2d. %-30s  h-index: %d   papers: %d%n",
-                    rank++, name, r.calculateHIndex(), r.getResearchPapers().size());
+            System.out.printf("%2d. %-30s  h-index: %d   papers: %d%n", rank++, name, r.calculateHIndex(), r.getResearchPapers().size());
         }
     }
-
-    // ─── 10. Publish paper to journal (Observer pattern) ─────────────────────────
 
     private void publishToJournal() {
         List<ResearchPaper> papers = researcher.getResearchPapers();
-        if (papers.isEmpty()) { System.out.println("No papers to publish."); return; }
-
         List<ResearchJournal> journals = database.getJournals();
-        if (journals.isEmpty()) { System.out.println("No journals available."); return; }
+        if (papers.isEmpty() || journals.isEmpty()) { Lang.info(Lang.get("empty")); return; }
 
         printNumberedPapers(papers);
-        System.out.print("Select paper to publish: ");
-        int pIdx = readInt();
-        if (pIdx < 1 || pIdx > papers.size()) { System.out.println("Invalid."); return; }
+        System.out.print("Select paper: "); int pIdx = readInt() - 1;
+        if (pIdx < 0 || pIdx >= papers.size()) { Lang.err(Lang.get("invalid")); return; }
 
-        System.out.println("--- Journals ---");
-        for (int i = 0; i < journals.size(); i++) {
-            System.out.println((i + 1) + ". " + journals.get(i).getName());
-        }
-        System.out.print("Select journal: ");
-        int jIdx = readInt();
-        if (jIdx < 1 || jIdx > journals.size()) { System.out.println("Invalid."); return; }
+        for (int i = 0; i < journals.size(); i++) System.out.println((i + 1) + ". " + journals.get(i).getName());
+        System.out.print("Select journal: "); int jIdx = readInt() - 1;
+        if (jIdx < 0 || jIdx >= journals.size()) { Lang.err(Lang.get("invalid")); return; }
 
-        ResearchJournal journal = journals.get(jIdx - 1);
-        ResearchPaper paper = papers.get(pIdx - 1);
+        ResearchJournal journal = journals.get(jIdx);
+        ResearchPaper paper = papers.get(pIdx);
         journal.publishPaper(paper);
 
-        // Auto-generate Research news announcement
         if (researcher instanceof User user) {
-            News announcement = new News(
-                    "New Publication: " + paper.getTitle(),
-                    user.getFullName() + " published a new paper \"" + paper.getTitle()
-                            + "\" in " + journal.getName() + ".",
-                    NewsType.RESEARCH,
-                    (users.Employee) user
-            );
+            News announcement = new News("New Publication: " + paper.getTitle(),
+                    user.getFullName() + " published a new paper \"" + paper.getTitle() + "\" in " + journal.getName() + ".",
+                    NewsType.RESEARCH, (users.Employee) user);
             database.addNews(announcement);
-            System.out.println("[Auto] Research news announcement created.");
+            database.log(ownerName, "PUBLISH_PAPER", "Published paper " + paper.getTitle() + " in " + journal.getName());
+            Lang.ok("Published & Announcement created");
         }
     }
-
-    // ─── 11. Subscribe to journal ────────────────────────────────────────────────
 
     private void subscribeToJournal() {
         List<ResearchJournal> journals = database.getJournals();
-        if (journals.isEmpty()) { System.out.println("No journals."); return; }
-
-        for (int i = 0; i < journals.size(); i++) {
-            System.out.println((i + 1) + ". " + journals.get(i));
-        }
-        System.out.print("Subscribe to journal number: ");
+        if (journals.isEmpty()) { Lang.info(Lang.get("empty")); return; }
+        for (int i = 0; i < journals.size(); i++) System.out.println((i + 1) + ". " + journals.get(i));
+        System.out.print(Lang.get("select") + ": ");
         int idx = readInt() - 1;
-        if (idx < 0 || idx >= journals.size()) { System.out.println("Invalid."); return; }
-
-        if (researcher instanceof User user) {
+        if (idx >= 0 && idx < journals.size() && researcher instanceof User user) {
             journals.get(idx).subscribe(user);
-        }
+            database.log(ownerName, "SUBSCRIBE_JOURNAL", "Subscribed to " + journals.get(idx).getName());
+        } else Lang.err(Lang.get("invalid"));
     }
-
-    // ─── 12. View journals ───────────────────────────────────────────────────────
 
     private void viewJournals() {
-        List<ResearchJournal> journals = database.getJournals();
-        if (journals.isEmpty()) { System.out.println("No journals."); return; }
-        System.out.println("\n=== Research Journals ===");
-        for (ResearchJournal j : journals) {
-            System.out.println("  " + j);
-        }
+        database.getJournals().forEach(j -> System.out.println("  " + j));
     }
-
-    // ─── 13. Add diploma project (GraduateStudent only) ──────────────────────────
 
     private void addDiplomaProject(GraduateStudent gs) {
-        System.out.print("Diploma project title: ");
-        String title = readLine();
-        ResearchPaper diploma = new ResearchPaper(
-                title,
-                List.of(ownerName),
-                "Diploma Project",
-                1,
-                LocalDate.now(),
-                title.toLowerCase().replace(' ', '-') + "-diploma",
-                0
-        );
-        gs.addDiplomaProject(diploma);
-        System.out.println("Diploma project added.");
+        System.out.print("Title: "); String title = scanner.nextLine().trim();
+        gs.addDiplomaProject(new ResearchPaper(title, List.of(ownerName), "Diploma", 1, LocalDate.now(), title.toLowerCase().replace(' ', '-') + "-diploma", 0));
+        database.log(ownerName, "ADD_DIPLOMA", "Added diploma project: " + title);
+        Lang.ok(Lang.get("success"));
     }
-
-    // ─── 14. View diploma projects ───────────────────────────────────────────────
-
-    private void viewDiplomaProjects(GraduateStudent gs) {
-        List<ResearchPaper> diplomas = gs.getDiplomaProjects();
-        if (diplomas.isEmpty()) { System.out.println("No diploma projects yet."); return; }
-        System.out.println("\n--- Diploma Projects ---");
-        diplomas.forEach(System.out::println);
-    }
-
-    // ─── 15. Set supervisor ───────────────────────────────────────────────────────
-
+    private void viewDiplomaProjects(GraduateStudent gs) { gs.getDiplomaProjects().forEach(System.out::println); }
     private void setSupervisor(GraduateStudent gs) {
         List<Teacher> teachers = database.getTeachers();
-        if (teachers.isEmpty()) { System.out.println("No teachers available."); return; }
-
         System.out.println("\n--- Available Supervisors (Researchers) ---");
         for (int i = 0; i < teachers.size(); i++) {
-            Teacher t = teachers.get(i);
-            if (t.isResearcher()) {
-                System.out.printf("%d. %-28s  h-index: %d%n", i + 1, t.getFullName(), t.calculateHIndex());
-            }
+            if (teachers.get(i).isResearcher()) System.out.printf("%d. %-28s  h-index: %d%n", i + 1, teachers.get(i).getFullName(), teachers.get(i).calculateHIndex());
         }
-
-        System.out.print("Enter teacher number: ");
-        int idx = readInt();
-        if (idx < 1 || idx > teachers.size()) { System.out.println("Invalid."); return; }
-        try {
-            gs.setSupervisor(teachers.get(idx - 1));
-            System.out.println("Supervisor set: " + teachers.get(idx - 1).getFullName());
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+        System.out.print(Lang.get("select") + ": ");
+        int idx = readInt() - 1;
+        if (idx >= 0 && idx < teachers.size()) {
+            try {
+                gs.setSupervisor(teachers.get(idx));
+                database.log(ownerName, "SET_SUPERVISOR", "Set supervisor to " + teachers.get(idx).getFullName());
+                Lang.ok(Lang.get("success"));
+            } catch (Exception e) { Lang.err(e.getMessage()); }
+        } else Lang.err(Lang.get("invalid"));
     }
-
-    // ─── utilities ───────────────────────────────────────────────────────────────
 
     private Comparator<ResearchPaper> pickComparator() {
         System.out.println("Sort by: 1=Date  2=Citations (desc)  3=Pages (desc)");
-        System.out.print("Choice: ");
+        System.out.print(Lang.get("choice") + ": ");
         return switch (readInt()) {
             case 2  -> ResearchPaper.byCitations();
             case 3  -> ResearchPaper.byPages();
             default -> ResearchPaper.byDate();
         };
     }
-
-    private void printNumberedPapers(List<ResearchPaper> papers) {
-        for (int i = 0; i < papers.size(); i++) {
-            System.out.println((i + 1) + ". " + papers.get(i));
-        }
-    }
-
-    private void back() {
-        System.out.println("Option not available for your role.");
-    }
-
-    private String readLine() {
-        return scanner.nextLine().trim();
-    }
-
-    private int readInt() {
-        try {
-            return Integer.parseInt(scanner.nextLine().trim());
-        } catch (NumberFormatException e) {
-            return -1;
-        }
-    }
+    private void printNumberedPapers(List<ResearchPaper> papers) { for (int i = 0; i < papers.size(); i++) System.out.println((i + 1) + ". " + papers.get(i)); }
+    private int readInt() { try { return Integer.parseInt(scanner.nextLine().trim()); } catch (Exception e) { return -1; } }
 }

@@ -1,297 +1,211 @@
 package app;
 
 import academics.Course;
-import enums.CitationFormat;
 import enums.UrgencyLevel;
-import research.ResearchPaper;
 import system.Comment;
+import system.Lang;
 import system.News;
-import users.*;
+import users.Employee;
+import users.Message;
+import users.Student;
+import users.Teacher;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Console menu for Teacher users.
- * Covers: viewing courses, students, putting marks, sending complaints,
- * sending messages, viewing/commenting news.
- */
 public class TeacherMenu {
-
     private final Teacher teacher;
-    private final Database db;
+    private final Database database;
     private final Scanner scanner;
 
-    public TeacherMenu(Teacher teacher, Database db, Scanner scanner) {
+    public TeacherMenu(Teacher teacher, Database database, Scanner scanner) {
         this.teacher = teacher;
-        this.db = db;
+        this.database = database;
         this.scanner = scanner;
     }
 
     public void show() {
-        boolean running = true;
-        while (running) {
-            System.out.println("\n=== Teacher Menu ===");
-            System.out.println("Welcome, " + teacher.getFullName() + "!");
-            System.out.println("Position: " + teacher.getPosition() + " | School: " + teacher.getSchool());
-            System.out.println("Rating: " + String.format("%.1f", teacher.getAverageRating()));
-            System.out.println("--------------------");
-            System.out.println("1.  View my courses");
-            System.out.println("2.  View students in a course");
-            System.out.println("3.  Put marks for a student");
-            System.out.println("4.  Send complaint about a student");
-            System.out.println("5.  Send message to an employee");
-            System.out.println("6.  View inbox");
-            System.out.println("7.  View news");
-            System.out.println("8.  Add comment to news");
-            System.out.println("0.  Back");
-            System.out.print("Choose: ");
+        while (true) {
+            Lang.header(Lang.get("tch_menu") + " — " + teacher.getFullName());
+            Lang.menuItem(1, "tch_courses");
+            Lang.menuItem(2, "tch_students");
+            Lang.menuItem(3, "tch_marks");
+            Lang.menuItem(4, "tch_complaint");
+            Lang.menuItem(5, "tch_send_msg");
+            Lang.menuItem(6, "tch_inbox");
+            Lang.menuItem(7, "tch_news");
+            Lang.menuItem(8, "tch_comment");
+            if (teacher.isResearcher()) {
+                System.out.println("\n  --- Researcher Options ---");
+                Lang.menuItem(9, "res_menu", true);
+            }
+            Lang.menuExit();
+            Lang.separator();
+            Lang.prompt();
 
-            String input = scanner.nextLine().trim();
-
-            switch (input) {
-                case "1"  -> viewCourses();
-                case "2"  -> viewStudentsInCourse();
-                case "3"  -> putMarks();
-                case "4"  -> sendComplaint();
-                case "5"  -> sendMessage();
-                case "6"  -> viewInbox();
-                case "7"  -> viewNews();
-                case "8"  -> commentOnNews();
-                case "0"  -> {
-                    System.out.println("Returning...");
-                    running = false;
-                }
-                default -> System.out.println("Invalid option. Try again.");
+            int choice = readInt();
+            switch (choice) {
+                case 1 -> viewMyCourses();
+                case 2 -> viewStudents();
+                case 3 -> putMarks();
+                case 4 -> sendComplaint();
+                case 5 -> sendEmployeeMessage();
+                case 6 -> viewInbox();
+                case 7 -> viewNews();
+                case 8 -> commentOnNews();
+                case 9 -> { if (teacher.isResearcher()) new ResearcherMenu(teacher, database, scanner).show(); else Lang.err(Lang.get("invalid")); }
+                case 0 -> { return; }
+                default -> Lang.err(Lang.get("invalid"));
             }
         }
     }
 
-    // ── 1. View my courses ────────────────────────────────────────────────────
-
-    private void viewCourses() {
-        List<Course> courses = teacher.viewCourses();
+    private void viewMyCourses() {
+        List<Course> courses = teacher.getCourses();
         if (courses.isEmpty()) {
-            System.out.println("You have no assigned courses.");
+            Lang.info(Lang.get("empty"));
             return;
         }
-        System.out.println("\n=== Your Courses ===");
+        System.out.println("\n--- " + Lang.get("tch_courses") + " ---");
         for (int i = 0; i < courses.size(); i++) {
-            System.out.println((i + 1) + ". " + courses.get(i));
+            System.out.println((i + 1) + ". " + courses.get(i).getName());
         }
     }
 
-    // ── 2. View students in a course ─────────────────────────────────────────
-
-    private void viewStudentsInCourse() {
-        Course course = pickCourse();
-        if (course == null) return;
-
-        List<Student> students = teacher.viewStudents(course);
-        if (students.isEmpty()) {
-            System.out.println("No students enrolled in " + course.getName());
-            return;
-        }
-        System.out.println("\n=== Students in " + course.getName() + " ===");
-        for (int i = 0; i < students.size(); i++) {
-            Student s = students.get(i);
-            System.out.printf("  %d. %-28s GPA: %.2f%n", i + 1, s.getFullName(), s.calculateGPA());
+    private void viewStudents() {
+        Course c = pickCourse();
+        if (c != null) {
+            List<Student> students = c.getEnrolledStudents();
+            if (students.isEmpty()) {
+                Lang.info(Lang.get("empty"));
+            } else {
+                students.forEach(s -> System.out.println("  " + s.getFullName() + " - " + s.getUserId()));
+            }
         }
     }
-
-    // ── 3. Put marks ──────────────────────────────────────────────────────────
 
     private void putMarks() {
-        Course course = pickCourse();
-        if (course == null) return;
-
-        List<Student> students = teacher.viewStudents(course);
+        Course c = pickCourse();
+        if (c == null) return;
+        List<Student> students = c.getEnrolledStudents();
         if (students.isEmpty()) {
-            System.out.println("No students in this course.");
+            Lang.info(Lang.get("empty"));
             return;
         }
-
-        System.out.println("Select student:");
         for (int i = 0; i < students.size(); i++) {
             System.out.println((i + 1) + ". " + students.get(i).getFullName());
         }
-        Student student = pickFromList(students);
-        if (student == null) return;
-
-        try {
-            System.out.print("Attestation 1 (0-30): ");
-            double att1 = Double.parseDouble(scanner.nextLine().trim());
-
-            System.out.print("Attestation 2 (0-30): ");
-            double att2 = Double.parseDouble(scanner.nextLine().trim());
-
-            System.out.print("Final exam (0-40): ");
-            double finalExam = Double.parseDouble(scanner.nextLine().trim());
-
-            teacher.putMark(student, course, att1, att2, finalExam);
-            System.out.println("Marks saved for " + student.getFullName());
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid input. Please enter numbers only.");
+        System.out.print(Lang.get("select") + ": ");
+        int sIdx = readInt() - 1;
+        if (sIdx >= 0 && sIdx < students.size()) {
+            Student s = students.get(sIdx);
+            System.out.print("Attestation 1 (0-30): "); double a1 = readDouble();
+            System.out.print("Attestation 2 (0-30): "); double a2 = readDouble();
+            System.out.print("Final Exam (0-40): ");    double fe = readDouble();
+            teacher.putMark(s, c, a1, a2, fe);
+            database.log(teacher.getFullName(), "PUT_MARK", "Rated " + s.getFullName() + " in " + c.getCourseId());
+            Lang.ok(Lang.get("success"));
+        } else {
+            Lang.err(Lang.get("invalid"));
         }
     }
-
-    // ── 4. Send complaint ─────────────────────────────────────────────────────
 
     private void sendComplaint() {
-        List<Student> allStudents = db.getStudents();
-        if (allStudents.isEmpty()) {
-            System.out.println("No students in the system.");
-            return;
-        }
-
-        System.out.println("Select student to complain about:");
-        for (int i = 0; i < allStudents.size(); i++) {
-            System.out.println((i + 1) + ". " + allStudents.get(i).getFullName());
-        }
-        Student student = pickFromList(allStudents);
-        if (student == null) return;
-
-        System.out.println("Select urgency level:");
-        UrgencyLevel[] levels = UrgencyLevel.values();
-        for (int i = 0; i < levels.length; i++) {
-            System.out.println((i + 1) + ". " + levels[i]);
-        }
-        UrgencyLevel urgency = null;
-        try {
-            int idx = Integer.parseInt(scanner.nextLine().trim()) - 1;
-            if (idx >= 0 && idx < levels.length) {
-                urgency = levels[idx];
+        System.out.print("Student ID: ");
+        String sid = scanner.nextLine().trim();
+        users.User u = database.findUserById(sid);
+        if (u instanceof Student s) {
+            System.out.print("Urgency (LOW, MEDIUM, HIGH): ");
+            try {
+                UrgencyLevel urg = UrgencyLevel.valueOf(scanner.nextLine().trim().toUpperCase());
+                System.out.print("Reason: ");
+                String reason = scanner.nextLine().trim();
+                teacher.sendComplaint(s, urg, reason);
+                database.log(teacher.getFullName(), "COMPLAINT", "Filed complaint against " + s.getFullName() + " [" + urg + "]");
+                Lang.ok(Lang.get("success"));
+            } catch (Exception e) {
+                Lang.err("Invalid urgency level");
             }
-        } catch (NumberFormatException ignored) {}
-
-        if (urgency == null) {
-            System.out.println("Invalid urgency level.");
-            return;
+        } else {
+            Lang.err(Lang.get("not_found"));
         }
-
-        System.out.print("Reason: ");
-        String reason = scanner.nextLine().trim();
-
-        Complaint complaint = teacher.sendComplaint(student, urgency, reason);
-        db.addComplaint(complaint);
-        System.out.println("Complaint submitted: " + complaint);
     }
 
-    // ── 5. Send message to employee ───────────────────────────────────────────
-
-    private void sendMessage() {
-        List<Employee> employees = db.getEmployees();
-        if (employees.isEmpty()) {
-            System.out.println("No employees in the system.");
-            return;
+    private void sendEmployeeMessage() {
+        List<Employee> emps = database.getEmployees();
+        for (int i = 0; i < emps.size(); i++) {
+            System.out.println((i + 1) + ". " + emps.get(i).getFullName() + " (" + emps.get(i).getClass().getSimpleName() + ")");
         }
-        System.out.println("\n--- Employees ---");
-        for (int i = 0; i < employees.size(); i++) {
-            Employee e = employees.get(i);
-            System.out.println((i + 1) + ". " + e.getFullName() + " (" + e.getClass().getSimpleName() + ")");
+        System.out.print(Lang.get("select") + ": ");
+        int idx = readInt() - 1;
+        if (idx >= 0 && idx < emps.size()) {
+            System.out.print(Lang.get("message") + ": ");
+            String text = scanner.nextLine().trim();
+            teacher.sendMessage(emps.get(idx), text);
+            database.log(teacher.getFullName(), "SEND_MSG", "Sent message to " + emps.get(idx).getFullName());
+            Lang.ok(Lang.get("sent"));
+        } else {
+            Lang.err(Lang.get("invalid"));
         }
-        Employee receiver = pickFromList(employees);
-        if (receiver == null) return;
-
-        System.out.print("Message: ");
-        String text = scanner.nextLine().trim();
-        teacher.sendMessage(receiver, text);
-        System.out.println("Message sent to " + receiver.getFullName());
     }
-
-    // ── 6. View inbox ─────────────────────────────────────────────────────────
 
     private void viewInbox() {
         List<Message> inbox = teacher.getInbox();
-        if (inbox.isEmpty()) {
-            System.out.println("Inbox is empty.");
-            return;
-        }
-        System.out.println("\n=== Inbox (" + inbox.size() + " messages) ===");
-        for (Message msg : inbox) {
-            System.out.println("  " + msg);
-        }
+        if (inbox.isEmpty()) Lang.info(Lang.get("empty"));
+        else inbox.forEach(m -> System.out.println("  " + m));
     }
-
-    // ── 7. View news ──────────────────────────────────────────────────────────
 
     private void viewNews() {
-        List<News> news = db.getNewsList();
+        List<News> news = database.getNewsList();
         if (news.isEmpty()) {
-            System.out.println("No news.");
+            Lang.info(Lang.get("empty"));
             return;
         }
-        System.out.println("\n=== University News ===");
+        System.out.println("\n=== UNIVERSITY NEWS ===");
         for (int i = 0; i < news.size(); i++) {
             News n = news.get(i);
-            String display = (i + 1) + ". " + n.toString();
-            // Research news highlighted in color (ANSI yellow)
-            if (n.isPinned()) {
-                display = "\033[1;33m" + display + "\033[0m";
-            }
+            String display = (i + 1) + ". " + n.toString() + "\n  " + n.getContent();
+            if (n.isPinned()) display = "\033[1;33m" + display + "\033[0m";
             System.out.println(display);
-            // Show comments
-            if (!n.getComments().isEmpty()) {
-                for (Comment c : n.getComments()) {
-                    System.out.println("     💬 " + c);
-                }
-            }
         }
     }
-
-    // ── 8. Comment on news ────────────────────────────────────────────────────
 
     private void commentOnNews() {
-        List<News> news = db.getNewsList();
-        if (news.isEmpty()) {
-            System.out.println("No news to comment on.");
-            return;
-        }
-        for (int i = 0; i < news.size(); i++) {
-            System.out.println((i + 1) + ". " + news.get(i).getTitle());
-        }
-        System.out.print("Select news number: ");
+        viewNews();
+        System.out.print(Lang.get("select") + ": ");
         int idx = readInt() - 1;
-        if (idx < 0 || idx >= news.size()) {
-            System.out.println("Invalid selection.");
-            return;
+        List<News> news = database.getNewsList();
+        if (idx >= 0 && idx < news.size()) {
+            System.out.print(Lang.get("message") + ": ");
+            String text = scanner.nextLine().trim();
+            news.get(idx).addComment(new Comment(teacher, text));
+            database.log(teacher.getFullName(), "COMMENT_NEWS", "Commented on news #" + news.get(idx).getNewsId());
+            Lang.ok(Lang.get("success"));
+        } else {
+            Lang.err(Lang.get("invalid"));
         }
-        System.out.print("Your comment: ");
-        String text = scanner.nextLine().trim();
-        news.get(idx).addComment(new Comment(teacher, text));
-        System.out.println("Comment added.");
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private Course pickCourse() {
-        List<Course> courses = teacher.viewCourses();
+        List<Course> courses = teacher.getCourses();
         if (courses.isEmpty()) {
-            System.out.println("You have no assigned courses.");
+            Lang.info(Lang.get("empty"));
             return null;
         }
-        System.out.println("Select course:");
         for (int i = 0; i < courses.size(); i++) {
-            System.out.println((i + 1) + ". " + courses.get(i));
+            System.out.println((i + 1) + ". " + courses.get(i).getName());
         }
-        return pickFromList(courses);
-    }
-
-    private <T> T pickFromList(List<T> list) {
-        try {
-            int idx = Integer.parseInt(scanner.nextLine().trim()) - 1;
-            if (idx >= 0 && idx < list.size()) return list.get(idx);
-        } catch (NumberFormatException ignored) {}
-        System.out.println("Invalid selection.");
+        System.out.print(Lang.get("select") + ": ");
+        int idx = readInt() - 1;
+        if (idx >= 0 && idx < courses.size()) return courses.get(idx);
+        Lang.err(Lang.get("invalid"));
         return null;
     }
 
     private int readInt() {
-        try {
-            return Integer.parseInt(scanner.nextLine().trim());
-        } catch (NumberFormatException e) {
-            return -1;
-        }
+        try { return Integer.parseInt(scanner.nextLine().trim()); } catch (Exception e) { return -1; }
+    }
+    private double readDouble() {
+        try { return Double.parseDouble(scanner.nextLine().trim()); } catch (Exception e) { return -1.0; }
     }
 }

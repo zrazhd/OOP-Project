@@ -5,20 +5,18 @@ import research.ResearchJournal;
 import research.ResearchPaper;
 import research.ResearchProject;
 import system.Comment;
+import system.Lang;
 import system.News;
+import system.RegistrationRequest;
 import users.GraduateStudent;
 import users.Student;
-import users.Teacher;
+import users.StudentOrganization;
 
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Console menu for Student users (and GraduateStudent).
- * Covers: courses, marks, transcript, teacher rating, news, journal subscriptions.
- */
 public class StudentMenu {
     private final Student student;
     private final Database database;
@@ -32,35 +30,41 @@ public class StudentMenu {
 
     public void show() {
         while (true) {
-            System.out.println("\n=== Student Menu ===");
-            System.out.println("1.  View my courses");
-            System.out.println("2.  Register for course");
-            System.out.println("3.  Drop course");
-            System.out.println("4.  View marks");
-            System.out.println("5.  View transcript");
-            System.out.println("6.  Rate teacher");
-            System.out.println("7.  View teacher info");
-            System.out.println("8.  View news");
-            System.out.println("9.  Comment on news");
-            System.out.println("10. Subscribe to research journal");
-            System.out.println("11. View research journals");
+            Lang.header(Lang.get("stu_menu") + " — " + student.getFullName());
+            Lang.menuItem(1, "stu_courses");
+            Lang.menuItem(2, "stu_register");
+            Lang.menuItem(3, "stu_drop");
+            Lang.menuItem(4, "stu_marks");
+            Lang.menuItem(5, "stu_transcript");
+            Lang.menuItem(6, "stu_rate");
+            Lang.menuItem(7, "stu_teacher_info");
+            Lang.menuItem(8, "stu_news");
+            Lang.menuItem(9, "stu_comment");
+            Lang.menuItem(10, "stu_journal_sub");
+            Lang.menuItem(11, "stu_journals");
+            Lang.menuItem(12, "stu_orgs");
+            Lang.menuItem(13, "stu_join_org");
+            Lang.menuItem(14, "stu_leave_org");
+            Lang.menuItem(15, "stu_pending");
+
             if (student instanceof GraduateStudent) {
-                System.out.println("--- Graduate Student ---");
-                System.out.println("12. Add research paper");
-                System.out.println("13. View research papers");
-                System.out.println("14. Join research project");
-                System.out.println("15. View h-index");
-                System.out.println("16. Set supervisor");
-                System.out.println("17. Add diploma project");
-                System.out.println("18. View diploma projects");
+                System.out.println("\n  --- Graduate Student ---");
+                Lang.menuItem(16, "res_add");
+                Lang.menuItem(17, "res_view");
+                Lang.menuItem(18, "res_join");
+                Lang.menuItem(19, "res_hindex");
+                Lang.menuItem(20, "Set supervisor", true);
+                Lang.menuItem(21, "Add diploma project", true);
+                Lang.menuItem(22, "View diploma projects", true);
             }
-            System.out.println("0.  Back");
-            System.out.print("Choice: ");
+            Lang.menuBack();
+            Lang.separator();
+            Lang.prompt();
 
             int choice = readInt();
             switch (choice) {
                 case 1  -> viewMyCourses();
-                case 2  -> registerForCourse();
+                case 2  -> requestCourseRegistration();
                 case 3  -> dropCourse();
                 case 4  -> viewMarks();
                 case 5  -> System.out.println(student.getTranscript());
@@ -70,15 +74,19 @@ public class StudentMenu {
                 case 9  -> commentOnNews();
                 case 10 -> subscribeToJournal();
                 case 11 -> viewJournals();
-                case 12 -> { if (student instanceof GraduateStudent gs) addResearchPaper(gs); else invalid(); }
-                case 13 -> { if (student instanceof GraduateStudent gs) viewResearchPapers(gs); else invalid(); }
-                case 14 -> { if (student instanceof GraduateStudent gs) joinResearchProject(gs); else invalid(); }
-                case 15 -> { if (student instanceof GraduateStudent gs) System.out.println("h-index = " + gs.calculateHIndex()); else invalid(); }
-                case 16 -> { if (student instanceof GraduateStudent gs) setSupervisor(gs); else invalid(); }
-                case 17 -> { if (student instanceof GraduateStudent gs) addDiplomaProject(gs); else invalid(); }
-                case 18 -> { if (student instanceof GraduateStudent gs) viewDiplomaProjects(gs); else invalid(); }
-                case 0  -> { System.out.println("Returning..."); return; }
-                default -> System.out.println("Invalid option");
+                case 12 -> viewOrganizations();
+                case 13 -> joinOrganization();
+                case 14 -> leaveOrganization();
+                case 15 -> viewPendingRequests();
+                case 16 -> { if (student instanceof GraduateStudent gs) addResearchPaper(gs); else Lang.err(Lang.get("invalid")); }
+                case 17 -> { if (student instanceof GraduateStudent gs) viewResearchPapers(gs); else Lang.err(Lang.get("invalid")); }
+                case 18 -> { if (student instanceof GraduateStudent gs) joinResearchProject(gs); else Lang.err(Lang.get("invalid")); }
+                case 19 -> { if (student instanceof GraduateStudent gs) System.out.println("h-index = " + gs.calculateHIndex()); else Lang.err(Lang.get("invalid")); }
+                case 20 -> { if (student instanceof GraduateStudent gs) new ResearcherMenu(gs, database, scanner).show(); else Lang.err(Lang.get("invalid")); }
+                case 21 -> { if (student instanceof GraduateStudent gs) addDiplomaProject(gs); else Lang.err(Lang.get("invalid")); }
+                case 22 -> { if (student instanceof GraduateStudent gs) viewDiplomaProjects(gs); else Lang.err(Lang.get("invalid")); }
+                case 0  -> { return; }
+                default -> Lang.err(Lang.get("invalid"));
             }
         }
     }
@@ -86,80 +94,88 @@ public class StudentMenu {
     private void viewMyCourses() {
         List<Course> courses = student.viewCourses();
         if (courses.isEmpty()) {
-            System.out.println("No courses yet.");
+            Lang.info(Lang.get("stu_no_courses"));
             return;
         }
         for (Course course : courses) {
-            System.out.println(course);
+            System.out.println("  " + course);
         }
     }
 
-    private void registerForCourse() {
-        for (Course course : database.getCourses()) {
-            System.out.println(course.getCourseId() + " - " + course.getName() + " (" + course.getCourseType() + ", " + course.getSchool() + ")");
+    private void requestCourseRegistration() {
+        List<Course> all = database.getCourses();
+        for (int i = 0; i < all.size(); i++) {
+            System.out.println((i + 1) + ". " + all.get(i).getCourseId() + " - " + all.get(i).getName());
         }
-        System.out.print("Enter course id: ");
-        Course selected = database.findCourseById(scanner.nextLine().trim());
-        if (selected == null) {
-            System.out.println("Course not found.");
+        System.out.print(Lang.get("select") + " (1-" + all.size() + "): ");
+        int idx = readInt() - 1;
+        if (idx < 0 || idx >= all.size()) {
+            Lang.err(Lang.get("invalid"));
             return;
         }
-        try {
-            student.registerForCourse(selected);
-            System.out.println("Registered successfully.");
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        Course selected = all.get(idx);
+        
+        // Check if already requested
+        for (RegistrationRequest req : database.getRegistrationRequests()) {
+            if (req.getStudent().equals(student) && req.getCourse().equals(selected) && req.isPending()) {
+                Lang.err("You already have a pending request for this course.");
+                return;
+            }
         }
+
+        RegistrationRequest req = new RegistrationRequest(student, selected);
+        database.addRegistrationRequest(req);
+        database.log(student.getFullName(), "COURSE_REG_REQUEST", "Requested to register for " + selected.getCourseId());
+        Lang.ok("Registration request sent to Manager.");
     }
 
     private void dropCourse() {
         List<Course> courses = student.viewCourses();
         if (courses.isEmpty()) {
-            System.out.println("No courses to drop.");
+            Lang.info(Lang.get("stu_no_courses"));
             return;
         }
         for (int i = 0; i < courses.size(); i++) {
             System.out.println((i + 1) + ". " + courses.get(i));
         }
-        System.out.print("Select course to drop: ");
+        System.out.print(Lang.get("select") + ": ");
         int idx = readInt() - 1;
         if (idx < 0 || idx >= courses.size()) {
-            System.out.println("Invalid.");
+            Lang.err(Lang.get("invalid"));
             return;
         }
-        student.dropCourse(courses.get(idx));
-        System.out.println("Course dropped.");
+        Course c = courses.get(idx);
+        student.dropCourse(c);
+        database.log(student.getFullName(), "DROP_COURSE", "Dropped course " + c.getCourseId());
+        Lang.ok("Course dropped.");
     }
 
     private void viewMarks() {
         if (student.viewAllMarks().isEmpty()) {
-            System.out.println("No marks yet.");
+            Lang.info(Lang.get("empty"));
             return;
         }
         student.viewAllMarks().forEach((course, mark) ->
-                System.out.println(course.getCourseId() + " " + course.getName()
+                System.out.println("  " + course.getCourseId() + " " + course.getName()
                         + " -> " + mark.getTotal() + " (" + mark.getGradeLetter() + ")"));
     }
 
     private void rateTeacher() {
-        List<Teacher> teachers = database.getTeachers();
-        for (int i = 0; i < teachers.size(); i++) {
-            Teacher teacher = teachers.get(i);
-            System.out.println((i + 1) + ". " + teacher.getFullName() + " (" + teacher.getPosition() + ") Rating: " + String.format("%.1f", teacher.getAverageRating()));
-        }
-        System.out.print("Choose teacher number: ");
-        int index = readInt();
-        if (index < 1 || index > teachers.size()) {
-            System.out.println("Invalid teacher.");
-            return;
-        }
-        System.out.print("Rating 1-10: ");
-        int rating = readInt();
-        try {
-            student.rateTeacher(teachers.get(index - 1), rating);
-            System.out.println("Rating submitted.");
-        } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+        System.out.print("Teacher ID: ");
+        String tId = scanner.nextLine().trim();
+        users.User u = database.findUserById(tId);
+        if (u instanceof users.Teacher t) {
+            System.out.print("Rating 1-10: ");
+            int r = readInt();
+            try {
+                student.rateTeacher(t, r);
+                database.log(student.getFullName(), "RATE_TEACHER", "Rated " + t.getFullName() + " a " + r);
+                Lang.ok(Lang.get("success"));
+            } catch (Exception e) {
+                Lang.err(e.getMessage());
+            }
+        } else {
+            Lang.err(Lang.get("not_found"));
         }
     }
 
@@ -169,181 +185,162 @@ public class StudentMenu {
         }
     }
 
-    // ── News ──────────────────────────────────────────────────────────────────
-
     private void viewNews() {
         List<News> news = database.getNewsList();
         if (news.isEmpty()) {
-            System.out.println("No news.");
+            Lang.info(Lang.get("empty"));
             return;
         }
-        System.out.println("\n=== University News ===");
+        System.out.println("\n=== UNIVERSITY NEWS ===");
         for (int i = 0; i < news.size(); i++) {
             News n = news.get(i);
-            String display = (i + 1) + ". " + n.toString();
-            // Research news highlighted in ANSI yellow
-            if (n.isPinned()) {
-                display = "\033[1;33m" + display + "\033[0m";
-            }
+            String display = (i + 1) + ". " + n.toString() + "\n  " + n.getContent();
+            if (n.isPinned()) display = "\033[1;33m" + display + "\033[0m";
             System.out.println(display);
-            if (!n.getComments().isEmpty()) {
-                for (Comment c : n.getComments()) {
-                    System.out.println("     💬 " + c);
-                }
+            for (Comment c : n.getComments()) {
+                System.out.println("     💬 " + c);
             }
         }
     }
 
     private void commentOnNews() {
-        List<News> news = database.getNewsList();
-        if (news.isEmpty()) {
-            System.out.println("No news to comment on.");
-            return;
-        }
-        for (int i = 0; i < news.size(); i++) {
-            System.out.println((i + 1) + ". " + news.get(i).getTitle());
-        }
-        System.out.print("Select news number: ");
+        viewNews();
+        System.out.print(Lang.get("select") + ": ");
         int idx = readInt() - 1;
-        if (idx < 0 || idx >= news.size()) {
-            System.out.println("Invalid selection.");
-            return;
+        List<News> news = database.getNewsList();
+        if (idx >= 0 && idx < news.size()) {
+            System.out.print(Lang.get("message") + ": ");
+            String text = scanner.nextLine().trim();
+            news.get(idx).addComment(new Comment(student, text));
+            database.log(student.getFullName(), "COMMENT_NEWS", "Commented on news #" + news.get(idx).getNewsId());
+            Lang.ok(Lang.get("success"));
+        } else {
+            Lang.err(Lang.get("invalid"));
         }
-        System.out.print("Your comment: ");
-        String text = scanner.nextLine().trim();
-        news.get(idx).addComment(new Comment(student, text));
-        System.out.println("Comment added.");
     }
 
-    // ── Journal subscriptions (Observer pattern) ──────────────────────────────
+    private void viewOrganizations() {
+        List<String> orgs = student.getOrganizations();
+        if (orgs.isEmpty()) {
+            Lang.info(Lang.get("empty"));
+            return;
+        }
+        System.out.println("\n--- " + Lang.get("stu_orgs") + " ---");
+        for (String o : orgs) {
+            System.out.println("  " + o + " (" + student.getOrganizationRoles().get(o) + ")");
+        }
+    }
+
+    private void joinOrganization() {
+        List<StudentOrganization> orgs = database.getOrganizations();
+        if (orgs.isEmpty()) {
+            Lang.info(Lang.get("empty"));
+            return;
+        }
+        for (int i = 0; i < orgs.size(); i++) {
+            System.out.println((i + 1) + ". " + orgs.get(i).getName());
+        }
+        System.out.print(Lang.get("select") + ": ");
+        int idx = readInt() - 1;
+        if (idx >= 0 && idx < orgs.size()) {
+            StudentOrganization o = orgs.get(idx);
+            if (o.join(student)) {
+                database.log(student.getFullName(), "JOIN_ORG", "Joined organization " + o.getName());
+            }
+        } else {
+            Lang.err(Lang.get("invalid"));
+        }
+    }
+
+    private void leaveOrganization() {
+        List<String> orgs = student.getOrganizations();
+        if (orgs.isEmpty()) {
+            Lang.info(Lang.get("empty"));
+            return;
+        }
+        for (int i = 0; i < orgs.size(); i++) {
+            System.out.println((i + 1) + ". " + orgs.get(i));
+        }
+        System.out.print(Lang.get("select") + ": ");
+        int idx = readInt() - 1;
+        if (idx >= 0 && idx < orgs.size()) {
+            String name = orgs.get(idx);
+            StudentOrganization o = database.findOrganizationByName(name);
+            if (o != null && o.leave(student)) {
+                database.log(student.getFullName(), "LEAVE_ORG", "Left organization " + name);
+            }
+        } else {
+            Lang.err(Lang.get("invalid"));
+        }
+    }
+
+    private void viewPendingRequests() {
+        boolean found = false;
+        System.out.println("\n--- My Requests ---");
+        for (RegistrationRequest req : database.getRegistrationRequests()) {
+            if (req.getStudent().equals(student)) {
+                System.out.println("  " + req);
+                if (req.getManagerComment() != null) {
+                    System.out.println("    └ Comment: " + req.getManagerComment());
+                }
+                found = true;
+            }
+        }
+        if (!found) Lang.info(Lang.get("empty"));
+    }
 
     private void subscribeToJournal() {
         List<ResearchJournal> journals = database.getJournals();
         if (journals.isEmpty()) {
-            System.out.println("No research journals available.");
+            Lang.info(Lang.get("empty"));
             return;
         }
         for (int i = 0; i < journals.size(); i++) {
-            System.out.println((i + 1) + ". " + journals.get(i));
+            System.out.println((i + 1) + ". " + journals.get(i).getName());
         }
-        System.out.print("Subscribe to journal number (or 0 to cancel): ");
+        System.out.print(Lang.get("select") + ": ");
         int idx = readInt() - 1;
-        if (idx < 0 || idx >= journals.size()) {
-            System.out.println("Cancelled.");
-            return;
+        if (idx >= 0 && idx < journals.size()) {
+            journals.get(idx).subscribe(student);
+            database.log(student.getFullName(), "SUBSCRIBE_JOURNAL", "Subscribed to " + journals.get(idx).getName());
         }
-        journals.get(idx).subscribe(student);
     }
 
     private void viewJournals() {
-        List<ResearchJournal> journals = database.getJournals();
-        if (journals.isEmpty()) {
-            System.out.println("No research journals.");
-            return;
-        }
-        System.out.println("\n=== Research Journals ===");
-        for (ResearchJournal j : journals) {
+        for (ResearchJournal j : database.getJournals()) {
             System.out.println("  " + j);
         }
     }
 
-    // ── Graduate Student features ─────────────────────────────────────────────
-
+    // Graduate Student specific pass-throughs
     private void addResearchPaper(GraduateStudent gs) {
-        System.out.print("Title: ");
-        String title = scanner.nextLine();
-        System.out.print("Journal: ");
-        String journal = scanner.nextLine();
-        System.out.print("Pages: ");
-        int pages = readInt();
-        System.out.print("Year: ");
-        int year = readInt();
-        System.out.print("Citations: ");
-        int citations = readInt();
-        gs.addResearchPaper(new ResearchPaper(
-                title,
-                List.of(gs.getFullName()),
-                journal,
-                pages,
-                LocalDate.of(year, 1, 1),
-                title.toLowerCase().replace(' ', '-') + "-" + year,
-                citations
-        ));
-        System.out.println("Paper added.");
+        System.out.print("Title: "); String title = scanner.nextLine();
+        gs.addResearchPaper(new ResearchPaper(title, List.of(gs.getFullName()), "Journal", 1, LocalDate.now(), "doi", 0));
+        database.log(gs.getFullName(), "ADD_PAPER", "Added paper " + title);
+        Lang.ok(Lang.get("success"));
     }
-
     private void viewResearchPapers(GraduateStudent gs) {
-        if (gs.getResearchPapers().isEmpty()) {
-            System.out.println("No papers yet.");
-            return;
-        }
-        gs.getResearchPapers().stream()
-                .sorted(Comparator.naturalOrder())
-                .forEach(System.out::println);
+        gs.getResearchPapers().forEach(p -> System.out.println("  " + p));
     }
-
     private void joinResearchProject(GraduateStudent gs) {
-        System.out.print("Project topic: ");
-        String topic = scanner.nextLine();
+        System.out.print("Project topic: "); String topic = scanner.nextLine();
         gs.joinResearchProject(new ResearchProject(topic));
-        System.out.println("Joined project.");
+        database.log(gs.getFullName(), "JOIN_PROJECT", "Joined project " + topic);
+        Lang.ok(Lang.get("success"));
     }
-
-    private void setSupervisor(GraduateStudent gs) {
-        List<Teacher> teachers = database.getTeachers();
-        for (int i = 0; i < teachers.size(); i++) {
-            Teacher teacher = teachers.get(i);
-            System.out.println((i + 1) + ". " + teacher.getFullName()
-                    + " (h-index: " + teacher.calculateHIndex()
-                    + ", " + teacher.getPosition() + ")");
-        }
-        System.out.print("Choose supervisor: ");
-        int index = readInt();
-        if (index < 1 || index > teachers.size()) {
-            System.out.println("Invalid choice.");
-            return;
-        }
-        try {
-            gs.setSupervisor(teachers.get(index - 1));
-            System.out.println("Supervisor set: " + teachers.get(index - 1).getFullName());
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
     private void addDiplomaProject(GraduateStudent gs) {
-        System.out.print("Diploma project title: ");
-        String title = scanner.nextLine();
-        gs.addDiplomaProject(new ResearchPaper(
-                title,
-                List.of(gs.getFullName()),
-                "Diploma Project",
-                1,
-                LocalDate.now(),
-                title.toLowerCase().replace(' ', '-') + "-diploma",
-                0
-        ));
-        System.out.println("Diploma project added.");
+        System.out.print("Diploma project title: "); String title = scanner.nextLine();
+        gs.addDiplomaProject(new ResearchPaper(title, List.of(gs.getFullName()), "Diploma", 1, LocalDate.now(), "doi", 0));
+        database.log(gs.getFullName(), "ADD_DIPLOMA", "Added diploma project " + title);
+        Lang.ok(Lang.get("success"));
     }
-
     private void viewDiplomaProjects(GraduateStudent gs) {
-        List<ResearchPaper> diplomas = gs.getDiplomaProjects();
-        if (diplomas.isEmpty()) {
-            System.out.println("No diploma projects yet.");
-            return;
-        }
-        System.out.println("\n--- Diploma Projects ---");
-        diplomas.forEach(System.out::println);
-    }
-
-    private void invalid() {
-        System.out.println("This option is available only for Graduate Students.");
+        gs.getDiplomaProjects().forEach(System.out::println);
     }
 
     private int readInt() {
-        String line = scanner.nextLine().trim();
         try {
-            return Integer.parseInt(line);
+            return Integer.parseInt(scanner.nextLine().trim());
         } catch (NumberFormatException e) {
             return -1;
         }
