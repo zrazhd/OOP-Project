@@ -25,16 +25,16 @@ public class Database implements Serializable {
     private static final long serialVersionUID = 1L;
     private static Database instance;
 
-    private final List<User> users = new ArrayList<>();
-    private final List<Course> courses = new ArrayList<>();
-    private final List<News> newsList = new ArrayList<>();
-    private final List<TechRequest> techRequests = new ArrayList<>();
-    private final List<Complaint> complaints = new ArrayList<>();
-    private final List<ResearchJournal> journals = new ArrayList<>();
-    private final List<RegistrationRequest> registrationRequests = new ArrayList<>();
-    private final List<EmployeeRequest> employeeRequests = new ArrayList<>();
-    private final List<StudentOrganization> organizations = new ArrayList<>();
-    private final List<LogEntry> logs = new ArrayList<>();
+    private List<User> users = new ArrayList<>();
+    private List<Course> courses = new ArrayList<>();
+    private List<News> newsList = new ArrayList<>();
+    private List<TechRequest> techRequests = new ArrayList<>();
+    private List<Complaint> complaints = new ArrayList<>();
+    private List<ResearchJournal> journals = new ArrayList<>();
+    private List<RegistrationRequest> registrationRequests = new ArrayList<>();
+    private List<EmployeeRequest> employeeRequests = new ArrayList<>();
+    private List<StudentOrganization> organizations = new ArrayList<>();
+    private List<LogEntry> logs = new ArrayList<>();
 
     private Database() {
     }
@@ -66,6 +66,16 @@ public class Database implements Serializable {
         }
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             Database loaded = (Database) ois.readObject();
+            if (loaded.users == null) loaded.users = new ArrayList<>();
+            if (loaded.courses == null) loaded.courses = new ArrayList<>();
+            if (loaded.newsList == null) loaded.newsList = new ArrayList<>();
+            if (loaded.techRequests == null) loaded.techRequests = new ArrayList<>();
+            if (loaded.complaints == null) loaded.complaints = new ArrayList<>();
+            if (loaded.journals == null) loaded.journals = new ArrayList<>();
+            if (loaded.registrationRequests == null) loaded.registrationRequests = new ArrayList<>();
+            if (loaded.employeeRequests == null) loaded.employeeRequests = new ArrayList<>();
+            if (loaded.organizations == null) loaded.organizations = new ArrayList<>();
+            if (loaded.logs == null) loaded.logs = new ArrayList<>();
             instance = loaded;
             System.out.println("[Database] Data loaded from " + DATA_FILE);
             return loaded;
