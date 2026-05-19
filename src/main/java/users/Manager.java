@@ -10,6 +10,9 @@ import system.TechRequest;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Represents the manager in the system.
+ */
 public class Manager extends Employee {
 
     private ManagerType managerType;
@@ -26,6 +29,10 @@ public class Manager extends Employee {
     }
 
 
+    /**
+     * addCourseForRegistration.
+     * @param course parameter value.
+     */
     public void addCourseForRegistration(Course course) {
         if (!managedCourses.contains(course)) {
             managedCourses.add(course);
@@ -33,11 +40,20 @@ public class Manager extends Employee {
         }
     }
 
+    /**
+     * removeCourseFromRegistration.
+     * @param course parameter value.
+     */
     public void removeCourseFromRegistration(Course course) {
         managedCourses.remove(course);
         System.out.println("[Manager] Course removed: " + course.getName());
     }
 
+    /**
+     * assignLectureTeacher.
+     * @param course parameter value.
+     * @param teacher parameter value.
+     */
     public void assignLectureTeacher(Course course, Teacher teacher) {
         course.addLectureTeacher(teacher);
         teacher.addCourse(course);
@@ -45,6 +61,11 @@ public class Manager extends Employee {
                 + " → lecture teacher for " + course.getName());
     }
 
+    /**
+     * assignPracticeTeacher.
+     * @param course parameter value.
+     * @param teacher parameter value.
+     */
     public void assignPracticeTeacher(Course course, Teacher teacher) {
         course.addPracticeTeacher(teacher);
         teacher.addCourse(course);
@@ -52,6 +73,11 @@ public class Manager extends Employee {
                 + " → practice teacher for " + course.getName());
     }
 
+    /**
+     * approveStudentRegistration.
+     * @param student parameter value.
+     * @param course parameter value.
+     */
     public void approveStudentRegistration(Student student, Course course) {
         try {
             student.registerForCourse(course);
@@ -63,6 +89,11 @@ public class Manager extends Employee {
     }
 
 
+    /**
+     * generateCourseReport.
+     * @param course parameter value.
+     * @return String
+     */
     public String generateCourseReport(Course course) {
         StringBuilder sb = new StringBuilder();
         sb.append("====== COURSE REPORT: ").append(course.getName()).append(" ======\n");
@@ -92,6 +123,12 @@ public class Manager extends Employee {
         return sb.toString();
     }
 
+    /**
+     * generateSchoolReport.
+     * @param students parameter value.
+     * @param school parameter value.
+     * @return String
+     */
     public String generateSchoolReport(List<Student> students, School school) {
         List<Student> filtered = students.stream()
                 .filter(s -> s.getSchool() == school)
@@ -112,21 +149,43 @@ public class Manager extends Employee {
 
     // Sorting utilities 
 
+    /**
+     * sortStudentsByName.
+     * @param students parameter value.
+     * @return List&lt;Student&gt;
+     */
     public List<Student> sortStudentsByName(List<Student> students) {
         return students.stream()
                 .sorted(Comparator.comparing(User::getFullName))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * sortStudentsByGpa.
+     * @param students parameter value.
+     * @return List&lt;Student&gt;
+     */
     public List<Student> sortStudentsByGpa(List<Student> students) {
         return students.stream().sorted().collect(Collectors.toList());
     }
 
+    /**
+     * sortTeachersByRating.
+     * @param teachers parameter value.
+     * @return List&lt;Teacher&gt;
+     */
     public List<Teacher> sortTeachersByRating(List<Teacher> teachers) {
         return teachers.stream().sorted().collect(Collectors.toList());
     }
 
 
+    /**
+     * createNews.
+     * @param title parameter value.
+     * @param content parameter value.
+     * @param type parameter value.
+     * @return News
+     */
     public News createNews(String title, String content, NewsType type) {
         News news = new News(title, content, type, this);
         newsList.add(news);
@@ -134,10 +193,18 @@ public class Manager extends Employee {
         return news;
     }
 
+    /**
+     * deleteNews.
+     * @param news parameter value.
+     */
     public void deleteNews(News news) {
         newsList.remove(news);
     }
 
+    /**
+     * Gets the news sorted.
+     * @return List&lt;News&gt;
+     */
     public List<News> getNewsSorted() {
         return newsList.stream()
                 .sorted(Comparator.comparing(News::isPinned).reversed()
@@ -146,6 +213,11 @@ public class Manager extends Employee {
     }
 
 
+    /**
+     * viewSignedRequests.
+     * @param allRequests parameter value.
+     * @return List&lt;TechRequest&gt;
+     */
     public List<TechRequest> viewSignedRequests(List<TechRequest> allRequests) {
         return allRequests.stream()
                 .filter(TechRequest::isSignedByDean)
@@ -154,9 +226,21 @@ public class Manager extends Employee {
 
     // Getters 
 
+    /**
+     * Gets the manager type.
+     * @return ManagerType
+     */
     public ManagerType getManagerType() { return managerType; }
     public void setManagerType(ManagerType t) { this.managerType = t; }
+    /**
+     * Gets the managed courses.
+     * @return List&lt;Course&gt;
+     */
     public List<Course> getManagedCourses() { return managedCourses; }
+    /**
+     * Gets the news list.
+     * @return List&lt;News&gt;
+     */
     public List<News> getNewsList() { return newsList; }
 
     @Override

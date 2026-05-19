@@ -8,6 +8,9 @@ import exceptions.CreditLimitExceededException;
 import exceptions.TooManyFailsException;
 import java.util.*;
 
+/**
+ * Represents the student in the system.
+ */
 public class Student extends User implements Comparable<Student> {
 
     private static final int MAX_CREDITS = 21;
@@ -38,6 +41,10 @@ public class Student extends User implements Comparable<Student> {
     }
 
 
+    /**
+     * registerForCourse.
+     * @param course parameter value.
+     */
     public void registerForCourse(Course course) throws CreditLimitExceededException, TooManyFailsException {
         if (failCount >= MAX_FAILS) {
             throw new TooManyFailsException(getFullName() + " has failed " + failCount + " times. Cannot register for more courses.");
@@ -56,6 +63,10 @@ public class Student extends User implements Comparable<Student> {
     }
 
 
+    /**
+     * dropCourse.
+     * @param course parameter value.
+     */
     public void dropCourse(Course course) {
         if (enrolledCourses.remove(course)) {
             marks.remove(course);
@@ -65,11 +76,20 @@ public class Student extends User implements Comparable<Student> {
     }
 
 
+    /**
+     * viewCourses.
+     * @return List&lt;Course&gt;
+     */
     public List<Course> viewCourses() {
         return Collections.unmodifiableList(enrolledCourses);
     }
 
 
+    /**
+     * viewMark.
+     * @param course parameter value.
+     * @return Mark
+     */
     public Mark viewMark(Course course) {
         return marks.get(course);
     }
@@ -79,6 +99,10 @@ public class Student extends User implements Comparable<Student> {
     }
 
 
+    /**
+     * Gets the transcript.
+     * @return String
+     */
     public String getTranscript() {
         StringBuilder sb = new StringBuilder();
         sb.append("=== TRANSCRIPT ===\n");
@@ -99,6 +123,10 @@ public class Student extends User implements Comparable<Student> {
     }
 
 
+    /**
+     * calculateGPA.
+     * @return double
+     */
     public double calculateGPA() {
         if (marks.isEmpty()) return 0.0;
         double totalPoints = 0;
@@ -113,10 +141,18 @@ public class Student extends User implements Comparable<Student> {
     }
 
     
+    /**
+     * recordFail.
+     */
     public void recordFail() {
         failCount++;
     }
 
+    /**
+     * viewTeacherInfo.
+     * @param course parameter value.
+     * @return String
+     */
     public String viewTeacherInfo(Course course) {
         StringBuilder sb = new StringBuilder();
         sb.append("Teachers for ").append(course.getName()).append(":\n");
@@ -131,6 +167,11 @@ public class Student extends User implements Comparable<Student> {
         return sb.toString();
     }
 
+    /**
+     * rateTeacher.
+     * @param teacher parameter value.
+     * @param rating parameter value.
+     */
     public void rateTeacher(Teacher teacher, int rating) {
         if (rating < 1 || rating > 10) {
             throw new IllegalArgumentException("Rating must be between 1 and 10");
@@ -138,6 +179,11 @@ public class Student extends User implements Comparable<Student> {
         teacher.addRating(rating);
     }
 
+    /**
+     * joinOrganization.
+     * @param orgName parameter value.
+     * @param isHead parameter value.
+     */
     public void joinOrganization(String orgName, boolean isHead) {
         if (!organizations.contains(orgName)) {
             organizations.add(orgName);
@@ -145,6 +191,10 @@ public class Student extends User implements Comparable<Student> {
         }
     }
 
+    /**
+     * leaveOrganization.
+     * @param orgName parameter value.
+     */
     public void leaveOrganization(String orgName) {
         organizations.remove(orgName);
         organizationRoles.remove(orgName);
@@ -158,14 +208,38 @@ public class Student extends User implements Comparable<Student> {
     }
 
     // Getters and Setters
+    /**
+     * Gets the degree type.
+     * @return DegreeType
+     */
     public DegreeType getDegreeType() { return degreeType; }
     public void setDegreeType(DegreeType degreeType) { this.degreeType = degreeType; }
+    /**
+     * Gets the school.
+     * @return School
+     */
     public School getSchool() { return school; }
     public void setSchool(School school) { this.school = school; }
+    /**
+     * Gets the year of study.
+     * @return int
+     */
     public int getYearOfStudy() { return yearOfStudy; }
     public void setYearOfStudy(int yearOfStudy) { this.yearOfStudy = yearOfStudy; }
+    /**
+     * Gets the total credits.
+     * @return int
+     */
     public int getTotalCredits() { return totalCredits; }
+    /**
+     * Gets the fail count.
+     * @return int
+     */
     public int getFailCount() { return failCount; }
+    /**
+     * Gets the organizations.
+     * @return List&lt;String&gt;
+     */
     public List<String> getOrganizations() { return organizations; }
     public Map<String, String> getOrganizationRoles() { return organizationRoles; }
 

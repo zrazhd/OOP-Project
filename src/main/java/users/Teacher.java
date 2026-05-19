@@ -8,6 +8,9 @@ import enums.School;
 import research.*;
 import java.util.*;
 
+/**
+ * Represents the teacher in the system.
+ */
 public class Teacher extends Employee implements Comparable<Teacher>, Researcher {
     private static final long serialVersionUID = 1L;
 
@@ -38,20 +41,40 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         this.researchProjects = new ArrayList<>();
     }
 
+    /**
+     * viewCourses.
+     * @return List&lt;Course&gt;
+     */
     public List<Course> viewCourses() {
         return Collections.unmodifiableList(courses);
     }
 
+    /**
+     * addCourse.
+     * @param course parameter value.
+     */
     public void addCourse(Course course) {
         if (!courses.contains(course)) {
             courses.add(course);
         }
     }
 
+    /**
+     * removeCourse.
+     * @param course parameter value.
+     */
     public void removeCourse(Course course) {
         courses.remove(course);
     }
 
+    /**
+     * putMark.
+     * @param student parameter value.
+     * @param course parameter value.
+     * @param att1 parameter value.
+     * @param att2 parameter value.
+     * @param finalExam parameter value.
+     */
     public void putMark(Student student, Course course, double att1, double att2, double finalExam) {
         if (!courses.contains(course)) {
             System.out.println("You don't teach " + course.getName());
@@ -71,6 +94,11 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         }
     }
 
+    /**
+     * viewStudents.
+     * @param course parameter value.
+     * @return List&lt;Student&gt;
+     */
     public List<Student> viewStudents(Course course) {
         if (!courses.contains(course)) {
             System.out.println("You don't teach " + course.getName());
@@ -79,16 +107,31 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         return course.getEnrolledStudents();
     }
 
+    /**
+     * sendComplaint.
+     * @param student parameter value.
+     * @param urgency parameter value.
+     * @param reason parameter value.
+     * @return Complaint
+     */
     public Complaint sendComplaint(Student student, UrgencyLevel urgency, String reason) {
         Complaint complaint = new Complaint(this, student, urgency, reason);
         System.out.println("Complaint sent about " + student.getFullName() + " with urgency " + urgency);
         return complaint;
     }
 
+    /**
+     * addRating.
+     * @param rating parameter value.
+     */
     public void addRating(int rating) {
         ratings.add(rating);
     }
 
+    /**
+     * Gets the average rating.
+     * @return double
+     */
     public double getAverageRating() {
         if (ratings.isEmpty()) return 0.0;
         int sum = 0;
@@ -99,14 +142,25 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
     }
 
 
+    /**
+     * becomeResearcher.
+     */
     public void becomeResearcher() {
         this.isResearcher = true;
     }
 
+    /**
+     * Checks if researcher.
+     * @return boolean
+     */
     public boolean isResearcher() {
         return isResearcher;
     }
 
+    /**
+     * addResearchPaper.
+     * @param paper parameter value.
+     */
     public void addResearchPaper(ResearchPaper paper) {
         if (!isResearcher) {
             System.out.println(getFullName() + " is not a researcher.");
@@ -117,6 +171,10 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         }
     }
 
+    /**
+     * joinResearchProject.
+     * @param project parameter value.
+     */
     public void joinResearchProject(ResearchProject project) throws NotResearcherException {
         if (!isResearcher) {
             throw new NotResearcherException(getFullName() + " is not a researcher and cannot join a research project.");
@@ -127,6 +185,10 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         }
     }
 
+    /**
+     * calculateHIndex.
+     * @return int
+     */
     public int calculateHIndex() {
         List<Integer> citationCounts = new ArrayList<>();
         for (ResearchPaper paper : researchPapers) {
@@ -145,6 +207,10 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         return h;
     }
 
+    /**
+     * printPapers.
+     * @param comparator parameter value.
+     */
     public void printPapers(Comparator<ResearchPaper> comparator) {
         List<ResearchPaper> sorted = new ArrayList<>(researchPapers);
         sorted.sort(comparator);
@@ -154,10 +220,18 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
         }
     }
 
+    /**
+     * Gets the research papers.
+     * @return List&lt;ResearchPaper&gt;
+     */
     public List<ResearchPaper> getResearchPapers() {
         return researchPapers;
     }
 
+    /**
+     * Gets the research projects.
+     * @return List&lt;ResearchProject&gt;
+     */
     public List<ResearchProject> getResearchProjects() {
         return researchProjects;
     }
@@ -169,11 +243,27 @@ public class Teacher extends Employee implements Comparable<Teacher>, Researcher
     }
 
     // Getters and Setters
+    /**
+     * Gets the position.
+     * @return TeacherPosition
+     */
     public TeacherPosition getPosition() { return position; }
     public void setPosition(TeacherPosition position) { this.position = position; }
+    /**
+     * Gets the school.
+     * @return School
+     */
     public School getSchool() { return school; }
     public void setSchool(School school) { this.school = school; }
+    /**
+     * Gets the courses.
+     * @return List&lt;Course&gt;
+     */
     public List<Course> getCourses() { return courses; }
+    /**
+     * Gets the ratings.
+     * @return List&lt;Integer&gt;
+     */
     public List<Integer> getRatings() { return ratings; }
 
     @Override

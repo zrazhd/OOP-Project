@@ -131,18 +131,38 @@ public final class Lang implements Serializable {
         put("res_all_papers",   "All university papers",        "Университет мақалалары",  "Все статьи университета");
     }
 
+    /**
+     * put.
+     * @param key parameter value.
+     * @param en parameter value.
+     * @param kz parameter value.
+     * @param ru parameter value.
+     */
     private static void put(String key, String en, String kz, String ru) {
         TEXTS.put(key, new String[]{en, kz, ru});
     }
 
+    /**
+     * Sets the language.
+     * @param lang parameter value.
+     */
     public static void setLanguage(Language lang) {
         current = lang;
     }
 
+    /**
+     * Gets the language.
+     * @return Language
+     */
     public static Language getLanguage() {
         return current;
     }
 
+    /**
+     * Gets the .
+     * @param key parameter value.
+     * @return String
+     */
     public static String get(String key) {
         String[] vals = TEXTS.get(key);
         if (vals == null) return key;
@@ -156,6 +176,10 @@ public final class Lang implements Serializable {
 
     // ── Formatting helpers ──
 
+    /**
+     * header.
+     * @param text parameter value.
+     */
     public static void header(String text) {
         int len = Math.max(text.length() + 4, 40);
         String line = "═".repeat(len);
@@ -164,42 +188,81 @@ public final class Lang implements Serializable {
         System.out.println("╚" + line + "╝");
     }
 
+    /**
+     * separator.
+     */
     public static void separator() {
         System.out.println("─".repeat(44));
     }
 
+    /**
+     * menuItem.
+     * @param num parameter value.
+     * @param key parameter value.
+     */
     public static void menuItem(int num, String key) {
         System.out.printf("  %2d │ %s%n", num, get(key));
     }
 
+    /**
+     * menuItem.
+     * @param num parameter value.
+     * @param text parameter value.
+     * @param raw parameter value.
+     */
     public static void menuItem(int num, String text, boolean raw) {
         System.out.printf("  %2d │ %s%n", num, text);
     }
 
+    /**
+     * menuExit.
+     */
     public static void menuExit() {
         System.out.printf("   0 │ %s%n", get("logout"));
     }
 
+    /**
+     * menuBack.
+     */
     public static void menuBack() {
         System.out.printf("   0 │ %s%n", get("back"));
     }
 
+    /**
+     * prompt.
+     */
     public static void prompt() {
         System.out.print("➤ " + get("choice") + ": ");
     }
 
+    /**
+     * info.
+     * @param msg parameter value.
+     */
     public static void info(String msg) {
         System.out.println("  ℹ " + msg);
     }
 
+    /**
+     * ok.
+     * @param msg parameter value.
+     */
     public static void ok(String msg) {
         System.out.println("  ✓ " + msg);
     }
 
+    /**
+     * err.
+     * @param msg parameter value.
+     */
     public static void err(String msg) {
         System.out.println("  ✗ " + msg);
     }
 
+    /**
+     * warn.
+     * @param msg parameter value.
+     */
     public static void warn(String msg) {
         System.out.println("  ⚠ " + msg);
     }

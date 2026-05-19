@@ -24,6 +24,11 @@ public class RegistrationRequest implements Serializable {
     private Status status;
     private String managerComment;
 
+    /**
+     * Constructor for RegistrationRequest.
+     * @param student parameter value.
+     * @param course parameter value.
+     */
     public RegistrationRequest(Student student, Course course) {
         this.id = ++counter;
         this.student = student;
@@ -32,23 +37,59 @@ public class RegistrationRequest implements Serializable {
         this.status = Status.PENDING;
     }
 
+    /**
+     * Gets the id.
+     * @return int
+     */
     public int getId()                  { return id; }
+    /**
+     * Gets the student.
+     * @return Student
+     */
     public Student getStudent()         { return student; }
+    /**
+     * Gets the course.
+     * @return Course
+     */
     public Course getCourse()           { return course; }
+    /**
+     * Gets the status.
+     * @return Status
+     */
     public Status getStatus()           { return status; }
+    /**
+     * Gets the created at.
+     * @return LocalDateTime
+     */
     public LocalDateTime getCreatedAt() { return createdAt; }
+    /**
+     * Gets the manager comment.
+     * @return String
+     */
     public String getManagerComment()   { return managerComment; }
 
+    /**
+     * approve.
+     * @param comment parameter value.
+     */
     public void approve(String comment) {
         this.status = Status.APPROVED;
         this.managerComment = comment;
     }
 
+    /**
+     * reject.
+     * @param comment parameter value.
+     */
     public void reject(String comment) {
         this.status = Status.REJECTED;
         this.managerComment = comment;
     }
 
+    /**
+     * Checks if pending.
+     * @return boolean
+     */
     public boolean isPending() {
         return status == Status.PENDING;
     }

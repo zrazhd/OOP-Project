@@ -3,6 +3,9 @@ package research;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Interface for researcher.
+ */
 public interface Researcher {
 
     List<ResearchPaper> getResearchPapers();
