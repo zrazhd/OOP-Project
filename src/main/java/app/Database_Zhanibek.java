@@ -14,17 +14,17 @@ import java.util.List;
  * Patched to add: removeUser(), getAllResearchPapers(), getAllResearchers()
  * — required by AdminMenu and ResearcherMenu.
  */
-public class Database {
-    private static Database instance;
+public class Database_Zhanibek {
+    private static Database_Zhanibek instance;
 
     private final List<User> users = new ArrayList<>();
     private final List<Course> courses = new ArrayList<>();
 
-    private Database() {}
+    private Database_Zhanibek() {}
 
-    public static Database getInstance() {
+    public static Database_Zhanibek getInstance() {
         if (instance == null) {
-            instance = new Database();
+            instance = new Database_Zhanibek();
         }
         return instance;
     }
